@@ -1,0 +1,9 @@
+Frontend:  React.js + Next.js + Tailwind CSS
+
+State Management: Redux Toolkit
+
+Backend: Django
+
+Database: PostgreSQL
+
+Payment: Stripe

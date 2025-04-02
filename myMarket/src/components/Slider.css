@@ -1,0 +1,26 @@
+.Slider {
+  display: flex;
+  overflow: hidden;
+  width: 100%;
+  height: 100%;
+  position: relative;
+  background-color: #f0f0f0;
+}
+
+.Slider-Track {
+  display: flex;
+  transition: transform 1s ease-in-out; 
+  width: 100%; 
+}
+
+.Slider-Item {
+  flex: 0 0 100%; 
+  height: 100%; 
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  background-color: #ffffff;
+  border: 2px solid black;
+  box-sizing: border-box; 
+}
