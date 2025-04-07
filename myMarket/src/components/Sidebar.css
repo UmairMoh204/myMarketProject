@@ -1,0 +1,12 @@
+
+
+.sideNav {
+    width: 30%;
+    height: 500px;
+    margin-left: 90px;
+    margin-top: 40px;
+    background-color: #ffffff;
+    padding-top: 50px;
+    border: 2px solid black;
+    border-radius: 20px;
+}
