@@ -1,5 +1,7 @@
 .App {
   text-align: center;
+  background-color: white;
+  color: black;
 }
 
 .App-logo {
@@ -38,11 +40,11 @@
 }
 
 .App-Nav {
-  background-color: #ffffff;
   display: flex;
   padding: 1rem;
   margin-top: 20px;
   justify-content: flex-end;
+;
 }
 
 .App-Nav ul {
@@ -65,3 +67,10 @@
 .App-Nav a:hover {
   text-decoration: underline;
 }
+
+.SliderContainerStyling {
+    width: 90%;
+    height: 500px;
+    margin: 0 auto;
+}
+

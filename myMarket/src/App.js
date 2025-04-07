@@ -1,6 +1,7 @@
 import './App.css';
 import Sidebar from './components/Sidebar';
 import Slider from './components/Slider';
+import ItemSlider from './components/ItemSlider';
 
 function App() {
   const slides = [
@@ -9,13 +10,7 @@ function App() {
     { id: 3, content: 'Slide 3' },
     { id: 4, content: 'Slide 4' },
     { id: 5, content: 'Slide 5' }
-  ]
-
-  const containerStyling = {
-    width: "1200px",
-    height: "500px",
-    margin: "0 auto",
-  }                          
+  ]                     
 
   return (
     <div className="App">
@@ -27,14 +22,14 @@ function App() {
           <li><a href="#signin"> Sign In </a></li>
         </ul>
       </nav>
-      <h1>Welcome To My MarketPlace</h1>
-      <div style={containerStyling}>
+      {/* <h1>Welcome To My MarketPlace</h1> */}
+      <div className='SliderContainerStyling'>
         <Slider slides={slides} />
       </div>
-      <Sidebar />
-      <p>
-      </p>
-      <p>My MarketPlace Website</p>
+      <div>
+        <h2 style={{ margin: '50px' }}>What's New</h2>
+      </div>
+      <ItemSlider />
     </div>
   );
 }
