@@ -1,1 +1,3 @@
 # myMarketProject
+
+pip install django
