@@ -23,9 +23,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.environ.get('SECRET_KEY', 'dev-secret-key')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = ['your-app-name.onrender.com', 'localhost']
+ALLOWED_HOSTS = ['mymarketproject.onrender.com', 'localhost', '127.0.0.1']
 
 
 # Application definition
