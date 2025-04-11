@@ -1,26 +1,43 @@
 import React from 'react';
 import './ItemSlider.css';
 
-function ItemSlider() {
+function ItemSlider({ 
+  items, 
+  containerClass = 'item-container', 
+  trackClass = 'item-track', 
+  itemClass = 'item', 
+  height = '350px', 
+  width = '250px', 
+  gap = '20px', // Add gap as a prop
+  animation = true 
+}) {
+  const itemStyle = {
+    height,
+    width,
+    marginRight: gap, // Add gap between items
+  };
+
   return (
-    <div className='item-container'>
-      <div className='item'>
-        <h2>ItemSlider 1</h2>
-      </div>
-      <div className='item'>
-          <h2>ItemSlider 2</h2>
-      </div>
-      <div className='item'>
-          <h2>ItemSlider 3</h2>
-      </div>
-      <div className='item'>
-          <h2>ItemSlider 4</h2>
-      </div>
-      <div className='item'>
-          <h2>ItemSlider 5</h2>
+    <div className={containerClass} style={{ height }}>
+      <div 
+        className={trackClass} 
+        style={{ 
+          animation: animation ? 'marquee 10s linear infinite' : 'none',
+          gap, // Apply gap to the track
+        }}
+      >
+        {items.map((item) => (
+          <div 
+            key={item.id} 
+            className={itemClass} 
+            style={itemStyle}
+          >
+            <h2>{item.content}</h2>
+          </div>
+        ))}
       </div>
     </div>
   );
 }
 
-export default ItemSlider;      
+export default ItemSlider;

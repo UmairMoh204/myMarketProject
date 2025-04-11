@@ -1,26 +1,22 @@
-
 .item-container {
-    max-width: 95%;
-    height: 300px;
-    margin: 0 auto;
-    border: 2px solid black;
-    color: white;
-    border-radius: 20px;
+  width: 100%; 
+  margin: 0 auto;
+  border: 2px solid white;
+  position: relative;
+}
 
-    display: flex;
-    align-items: center;
-    justify-content: center;
+.item-track {
+  display: flex;
+  animation: marquee 10s linear infinite;
+  gap: 20px;
 }
 
 .item {
-    width: 70%;
-    height: 80%;
-    margin: 20px;
-    border: 2px solid rgb(0, 0, 0);
-    border-radius: 20px;
-    color: rgb(0, 0, 0);
-
-    display: flex;
-    align-items: center;
-    justify-content: center;
+  width: 250px;
+  margin: 0 20px;
+  border: 2px solid black;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: white;
 }
