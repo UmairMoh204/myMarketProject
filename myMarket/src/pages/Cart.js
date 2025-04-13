@@ -3,7 +3,7 @@ import './Home.css';
 
 const Cart = () => {
     return (
-        <div className="cart-container" style={{ display: 'flex', justifyContent: 'space-between' }}>
+        <div className="cart-container">
             <div className="cart">
                 <h1>Shopping Cart</h1>
                 <div className="cart-items">
@@ -11,6 +11,11 @@ const Cart = () => {
                 </div>
             </div>
             
+            <div className="cart-details">
+                <h1>Details</h1>
+                <p>Additional information about the cart can go here.</p>
+            </div>
+
             <div className="cart-summary">
                 <h1>Summary</h1>
                 <div className="cart-items">
