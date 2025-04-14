@@ -68,15 +68,7 @@ WSGI_APPLICATION = 'marketplace.wsgi.application'
 DATABASES = {
     'default': dj_database_url.config(
         default='sqlite:///db.sqlite3',
-        conn_max_age=600,
-        conn_health_checks=True,
-        options={
-            'connect_timeout': 10,
-            'keepalives': 1,
-            'keepalives_idle': 30,
-            'keepalives_interval': 10,
-            'keepalives_count': 5,
-        }
+        conn_max_age=600
     )
 }
 
