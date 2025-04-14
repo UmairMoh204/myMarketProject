@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
@@ -35,11 +35,7 @@ const ListingDetail = () => {
   const [message, setMessage] = useState('');
   const [snackbar, setSnackbar] = useState({ open: false, message: '' });
 
-  useEffect(() => {
-    fetchListing();
-  }, [id]);
-
-  const fetchListing = async () => {
+  const fetchListing = useCallback(async () => {
     try {
       const response = await axios.get(`${endpoints.listing(id)}/`);
       setListing(response.data);
@@ -49,7 +45,11 @@ const ListingDetail = () => {
       setError('Failed to load listing. Please try again later.');
       setLoading(false);
     }
-  };
+  }, [id]);
+
+  useEffect(() => {
+    fetchListing();
+  }, [id, fetchListing]);
 
   const handleContact = () => {
     if (!user) {

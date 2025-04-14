@@ -1,3 +1,5 @@
+import axios from 'axios';
+
 const BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
 const API_VERSION = 'api';
 
@@ -16,7 +18,6 @@ export const endpoints = {
 };
 
 // Add axios default headers
-import axios from 'axios';
 axios.defaults.headers.common['Content-Type'] = 'application/json';
 axios.defaults.headers.common['Accept'] = 'application/json';
 
