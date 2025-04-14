@@ -11,10 +11,6 @@
   ],
   "routes": [
     {
-      "src": "/api/(.*)",
-      "dest": "market-one-mauve.vercel.app"
-    },
-    {
       "src": "/static/(.*)",
       "dest": "/static/$1"
     },

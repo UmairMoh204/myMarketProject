@@ -21,11 +21,10 @@ const CreateListing = () => {
     title: '',
     description: '',
     price: '',
-    image_url: '',
     category: '',
     condition: '',
-    location: '',
   });
+  const [image, setImage] = useState(null);
   const [error, setError] = useState('');
 
   const handleChange = (e) => {
@@ -33,6 +32,12 @@ const CreateListing = () => {
       ...formData,
       [e.target.name]: e.target.value,
     });
+  };
+
+  const handleImageChange = (e) => {
+    if (e.target.files[0]) {
+      setImage(e.target.files[0]);
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -44,9 +49,22 @@ const CreateListing = () => {
 
     try {
       const token = localStorage.getItem('token');
-      await axios.post(endpoints.listings, formData, {
+      const formDataToSend = new FormData();
+      
+      // Append all form fields
+      Object.keys(formData).forEach(key => {
+        formDataToSend.append(key, formData[key]);
+      });
+      
+      // Append image if selected
+      if (image) {
+        formDataToSend.append('image', image);
+      }
+
+      await axios.post(endpoints.listings, formDataToSend, {
         headers: {
-          'Authorization': `Bearer ${token}`
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'multipart/form-data',
         }
       });
       navigate('/listings');
@@ -101,14 +119,29 @@ const CreateListing = () => {
               startAdornment: <Typography>$</Typography>,
             }}
           />
-          <TextField
-            fullWidth
-            label="Image URL"
-            name="image_url"
-            value={formData.image_url}
-            onChange={handleChange}
-            margin="normal"
-          />
+          <Box sx={{ mt: 2, mb: 2 }}>
+            <input
+              accept="image/*"
+              style={{ display: 'none' }}
+              id="image-upload"
+              type="file"
+              onChange={handleImageChange}
+            />
+            <label htmlFor="image-upload">
+              <Button
+                variant="outlined"
+                component="span"
+                fullWidth
+              >
+                Upload Image
+              </Button>
+            </label>
+            {image && (
+              <Typography variant="body2" sx={{ mt: 1 }}>
+                Selected file: {image.name}
+              </Typography>
+            )}
+          </Box>
           <TextField
             fullWidth
             select
@@ -119,13 +152,12 @@ const CreateListing = () => {
             required
             margin="normal"
           >
-            <MenuItem value="electronics">Electronics</MenuItem>
-            <MenuItem value="clothing">Clothing</MenuItem>
-            <MenuItem value="home">Home & Garden</MenuItem>
-            <MenuItem value="sports">Sports & Outdoors</MenuItem>
-            <MenuItem value="books">Books & Media</MenuItem>
-            <MenuItem value="toys">Toys & Games</MenuItem>
-            <MenuItem value="other">Other</MenuItem>
+            <MenuItem value="Electronics">Electronics</MenuItem>
+            <MenuItem value="Clothing">Clothing</MenuItem>
+            <MenuItem value="Books">Books</MenuItem>
+            <MenuItem value="Home">Home</MenuItem>
+            <MenuItem value="Sports">Sports</MenuItem>
+            <MenuItem value="Other">Other</MenuItem>
           </TextField>
           <TextField
             fullWidth
@@ -137,21 +169,12 @@ const CreateListing = () => {
             required
             margin="normal"
           >
-            <MenuItem value="new">New</MenuItem>
-            <MenuItem value="like_new">Like New</MenuItem>
-            <MenuItem value="good">Good</MenuItem>
-            <MenuItem value="fair">Fair</MenuItem>
-            <MenuItem value="poor">Poor</MenuItem>
+            <MenuItem value="New">New</MenuItem>
+            <MenuItem value="Like New">Like New</MenuItem>
+            <MenuItem value="Good">Good</MenuItem>
+            <MenuItem value="Fair">Fair</MenuItem>
+            <MenuItem value="Poor">Poor</MenuItem>
           </TextField>
-          <TextField
-            fullWidth
-            label="Location"
-            name="location"
-            value={formData.location}
-            onChange={handleChange}
-            required
-            margin="normal"
-          />
           <Box sx={{ mt: 3 }}>
             <Button
               type="submit"

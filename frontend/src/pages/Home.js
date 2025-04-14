@@ -1,8 +1,20 @@
 import React from 'react';
 import { Container, Typography, Button, Box } from '@mui/material';
-import { Link as RouterLink } from 'react-router-dom';
+import { Link as RouterLink, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 function Home() {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+
+  const handleCreateListing = () => {
+    if (!user) {
+      navigate('/login');
+    } else {
+      navigate('/create-listing');
+    }
+  };
+
   return (
     <Container>
       <Box
@@ -31,8 +43,7 @@ function Home() {
             Browse Listings
           </Button>
           <Button
-            component={RouterLink}
-            to="/create"
+            onClick={handleCreateListing}
             variant="outlined"
             size="large"
           >

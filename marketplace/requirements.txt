@@ -1,4 +1,4 @@
-Django==5.0.3
+Django==5.2
 djangorestframework==3.14.0
 djangorestframework-simplejwt==5.3.1
 django-cors-headers==4.3.1
@@ -7,4 +7,6 @@ Pillow==11.2.1
 whitenoise==6.6.0
 gunicorn==21.2.0
 python-dotenv==1.0.1
-dj-database-url==2.1.0 
+dj-database-url==2.1.0
+django-filter==24.1
+drf-yasg==1.21.7 

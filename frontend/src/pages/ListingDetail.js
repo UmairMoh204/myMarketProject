@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useCart } from '../context/CartContext';
 import axios from 'axios';
 import {
   Container,
@@ -16,18 +17,23 @@ import {
   DialogActions,
   TextField,
   Alert,
+  Snackbar,
 } from '@mui/material';
+import { ShoppingCart as ShoppingCartIcon } from '@mui/icons-material';
 import { endpoints } from '../config/api';
+import { formatPrice } from '../utils/utils';
 
 const ListingDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { addToCart } = useCart();
   const [listing, setListing] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [openDialog, setOpenDialog] = useState(false);
   const [message, setMessage] = useState('');
+  const [snackbar, setSnackbar] = useState({ open: false, message: '' });
 
   useEffect(() => {
     fetchListing();
@@ -35,7 +41,7 @@ const ListingDetail = () => {
 
   const fetchListing = async () => {
     try {
-      const response = await axios.get(endpoints.listing(id));
+      const response = await axios.get(`${endpoints.listing(id)}/`);
       setListing(response.data);
       setLoading(false);
     } catch (error) {
@@ -53,10 +59,28 @@ const ListingDetail = () => {
     setOpenDialog(true);
   };
 
+  const handleAddToCart = () => {
+    if (!user) {
+      navigate('/login');
+      return;
+    }
+    addToCart({
+      id: listing.id,
+      title: listing.title,
+      description: listing.description,
+      price: listing.price,
+      image: listing.image,
+    });
+    setSnackbar({
+      open: true,
+      message: 'Item added to cart successfully!',
+    });
+  };
+
   const handleSendMessage = async () => {
     try {
       const token = localStorage.getItem('token');
-      await axios.post(`${endpoints.listing(id)}/contact/`, {
+      await axios.post(`${endpoints.listings}${id}/contact/`, {
         message,
       }, {
         headers: {
@@ -65,7 +89,10 @@ const ListingDetail = () => {
       });
       setOpenDialog(false);
       setMessage('');
-      // Show success message or notification here
+      setSnackbar({
+        open: true,
+        message: 'Message sent successfully!',
+      });
     } catch (error) {
       console.error('Error sending message:', error);
       setError('Failed to send message. Please try again.');
@@ -101,9 +128,9 @@ const ListingDetail = () => {
       <Paper elevation={3} sx={{ p: 4, mt: 4 }}>
         <Grid container spacing={4}>
           <Grid item xs={12} md={6}>
-            {listing.image_url ? (
+            {listing.image ? (
               <img
-                src={listing.image_url}
+                src={listing.image}
                 alt={listing.title}
                 style={{ width: '100%', height: 'auto', borderRadius: '8px' }}
               />
@@ -128,7 +155,7 @@ const ListingDetail = () => {
               {listing.title}
             </Typography>
             <Typography variant="h5" color="primary" gutterBottom>
-              ${listing.price}
+              {formatPrice(listing.price)}
             </Typography>
             <Typography variant="body1" paragraph>
               {listing.description}
@@ -146,24 +173,31 @@ const ListingDetail = () => {
                 variant="outlined"
                 sx={{ mr: 1 }}
               />
-              <Chip
-                label={listing.location}
-                variant="outlined"
-              />
             </Box>
             <Typography variant="subtitle2" color="textSecondary" gutterBottom>
-              Listed by: {listing.owner_name}
+              Listed by: {listing.seller_name}
             </Typography>
-            <Button
-              variant="contained"
-              color="primary"
-              size="large"
-              fullWidth
-              onClick={handleContact}
-              sx={{ mt: 2 }}
-            >
-              Contact Seller
-            </Button>
+            <Box sx={{ mt: 2, display: 'flex', gap: 2 }}>
+              <Button
+                variant="contained"
+                color="primary"
+                size="large"
+                startIcon={<ShoppingCartIcon />}
+                onClick={handleAddToCart}
+                fullWidth
+              >
+                Add to Cart
+              </Button>
+              <Button
+                variant="outlined"
+                color="primary"
+                size="large"
+                onClick={handleContact}
+                fullWidth
+              >
+                Contact Seller
+              </Button>
+            </Box>
           </Grid>
         </Grid>
       </Paper>
@@ -189,6 +223,13 @@ const ListingDetail = () => {
           </Button>
         </DialogActions>
       </Dialog>
+
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={6000}
+        onClose={() => setSnackbar({ ...snackbar, open: false })}
+        message={snackbar.message}
+      />
     </Container>
   );
 };

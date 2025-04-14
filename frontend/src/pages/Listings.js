@@ -18,11 +18,17 @@ import {
   TrendingUp as TrendingUpIcon,
   AccessTime as AccessTimeIcon,
   AttachMoney as AttachMoneyIcon,
+  Add as AddIcon,
 } from '@mui/icons-material';
 import { formatPrice, formatDate } from '../utils/utils';
 import { useAuth } from '../context/AuthContext';
 import { endpoints } from '../config/api';
 import '../styles/marketplace.css';
+
+// Default image URL for listings without an image
+const getDefaultImageUrl = () => {
+  return 'https://via.placeholder.com/300x200?text=No+Image+Available';
+};
 
 const Listings = () => {
   const navigate = useNavigate();
@@ -42,7 +48,7 @@ const Listings = () => {
           'Authorization': `Bearer ${token}`
         } : {}
       });
-      setListings(response.data);
+      setListings(response.data.results || []); // Extract results from paginated response
       setError(null);
     } catch (err) {
       setError('Failed to fetch listings. Please try again later.');
@@ -92,7 +98,6 @@ const Listings = () => {
           color="primary"
           onClick={fetchListings}
           className="custom-button"
-          style={{ marginTop: '16px' }}
         >
           Retry
         </Button>
@@ -174,22 +179,27 @@ const Listings = () => {
           {filteredListings.map((listing) => (
             <Grid item xs={12} sm={6} md={4} key={listing.id}>
               <Link to={`/listings/${listing.id}`} className="listing-link">
-                <Box className="listing-card">
+                <Box className="marketplace-card">
                   <img
-                    src={listing.image_url || getDefaultImageUrl()}
+                    src={listing.image || getDefaultImageUrl()}
                     alt={listing.title}
-                    className="listing-image"
+                    className="marketplace-image"
                   />
-                  <Box className="listing-details">
+                  <Box p={2}>
                     <Typography variant="h6" className="listing-title">
                       {listing.title}
                     </Typography>
-                    <Typography variant="body1" className="listing-price">
-                      {formatPrice(listing.price)}
+                    <Typography variant="body2" color="textSecondary" className="listing-description">
+                      {listing.description}
                     </Typography>
-                    <Typography variant="body2" className="listing-date">
-                      Posted {formatDate(listing.created_at)}
-                    </Typography>
+                    <Box sx={{ mt: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <Typography variant="h6" className="listing-price">
+                        {formatPrice(listing.price)}
+                      </Typography>
+                      <Typography variant="caption" color="textSecondary">
+                        {formatDate(listing.created_at)}
+                      </Typography>
+                    </Box>
                   </Box>
                 </Box>
               </Link>

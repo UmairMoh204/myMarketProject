@@ -11,6 +11,7 @@ import {
   Alert,
 } from '@mui/material';
 import axios from 'axios';
+import { endpoints } from '../config/api';
 
 function Register() {
   const [formData, setFormData] = useState({
@@ -82,7 +83,7 @@ function Register() {
     }
 
     try {
-      const response = await axios.post('http://localhost:8000/api/register/', {
+      const response = await axios.post(endpoints.auth.register, {
         username: formData.username,
         email: formData.email,
         password: formData.password,

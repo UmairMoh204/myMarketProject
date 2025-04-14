@@ -11,27 +11,19 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const token = localStorage.getItem('token');
     const username = localStorage.getItem('username');
-    const email = localStorage.getItem('email');
     if (token) {
       axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-      // You could also verify the token here if needed
       setUser({ 
         token,
-        username,
-        email
+        username
       });
     }
     setLoading(false);
   }, []);
 
-  const login = async (email, password) => {
+  const login = async (username, password) => {
     try {
-      // First, get the username from the email
-      const userResponse = await axios.get(endpoints.userByEmail(email));
-      const username = userResponse.data.username;
-
-      // Then login with the username
-      const response = await axios.post(endpoints.login, {
+      const response = await axios.post(endpoints.auth.login, {
         username: username,
         password: password,
       });
@@ -39,12 +31,10 @@ export const AuthProvider = ({ children }) => {
       localStorage.setItem('token', access);
       localStorage.setItem('refreshToken', refresh);
       localStorage.setItem('username', username);
-      localStorage.setItem('email', email);
       axios.defaults.headers.common['Authorization'] = `Bearer ${access}`;
       setUser({ 
         token: access,
-        username: username,
-        email: email
+        username: username
       });
       return true;
     } catch (error) {
@@ -57,14 +47,13 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem('token');
     localStorage.removeItem('refreshToken');
     localStorage.removeItem('username');
-    localStorage.removeItem('email');
     delete axios.defaults.headers.common['Authorization'];
     setUser(null);
   };
 
   const register = async (username, email, password) => {
     try {
-      await axios.post(endpoints.register, {
+      await axios.post(endpoints.auth.register, {
         username,
         email,
         password,

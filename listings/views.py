@@ -1,11 +1,11 @@
 from django.shortcuts import render
 from rest_framework import viewsets, permissions, status
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import api_view, permission_classes, action
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
-from .models import Listing
-from .serializers import ListingSerializer, UserProfileSerializer
+from .models import Listing, Conversation, Message
+from .serializers import ListingSerializer, UserProfileSerializer, MessageSerializer
 from django.db.models import Count
 from django.utils import timezone
 from datetime import timedelta
@@ -49,7 +49,34 @@ class ListingViewSet(viewsets.ModelViewSet):
         return queryset
 
     def perform_create(self, serializer):
-        serializer.save(owner=self.request.user)
+        serializer.save(seller=self.request.user)
+
+    @action(detail=True, methods=['post'])
+    def contact(self, request, pk=None):
+        listing = self.get_object()
+        content = request.data.get('message')
+        
+        if not content:
+            return Response({'error': 'Message content is required'}, status=400)
+            
+        # Get or create conversation
+        conversation = Conversation.objects.filter(
+            listing=listing,
+            participants=request.user
+        ).first()
+        
+        if not conversation:
+            conversation = Conversation.objects.create(listing=listing)
+            conversation.participants.add(request.user, listing.seller)
+            
+        # Create message
+        message = Message.objects.create(
+            conversation=conversation,
+            sender=request.user,
+            content=content
+        )
+        
+        return Response(MessageSerializer(message).data, status=201)
 
 @api_view(['POST'])
 @permission_classes([AllowAny])

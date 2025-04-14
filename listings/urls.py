@@ -5,6 +5,7 @@ from .views import user_profile
 
 router = DefaultRouter()
 router.register(r'listings', views.ListingViewSet, basename='listing')
+router.register(r'conversations', views.ConversationViewSet, basename='conversation')
 
 urlpatterns = [
     path('', views.api_root),

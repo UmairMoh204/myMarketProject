@@ -1,53 +1,53 @@
 import React from 'react';
-import { useCart } from '../context/CartContext';
+import { useNavigate } from 'react-router-dom';
 import {
   Container,
   Typography,
-  Box,
   Card,
   CardContent,
   CardMedia,
-  IconButton,
-  Button,
   Grid,
-  TextField,
+  Button,
+  IconButton,
+  Box,
+  Divider,
 } from '@mui/material';
-import DeleteIcon from '@mui/icons-material/Delete';
-import AddIcon from '@mui/icons-material/Add';
-import RemoveIcon from '@mui/icons-material/Remove';
-import { useNavigate } from 'react-router-dom';
+import { Delete as DeleteIcon } from '@mui/icons-material';
+import { useCart } from '../context/CartContext';
+import { formatPrice } from '../utils/utils';
 
-const Cart = () => {
-  const { cart, removeFromCart, updateQuantity, getCartTotal } = useCart();
+function Cart() {
+  const { cart, removeFromCart, clearCart, getCartTotal } = useCart();
   const navigate = useNavigate();
 
   if (cart.length === 0) {
     return (
-      <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-        <Typography variant="h4" gutterBottom>
-          Your Cart
-        </Typography>
-        <Box sx={{ textAlign: 'center', mt: 4 }}>
-          <Typography variant="h6" color="text.secondary">
-            Your cart is empty
-          </Typography>
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={() => navigate('/')}
-            sx={{ mt: 2 }}
-          >
-            Continue Shopping
-          </Button>
-        </Box>
+      <Container maxWidth="md" sx={{ mt: 4 }}>
+        <Card>
+          <CardContent sx={{ textAlign: 'center', py: 4 }}>
+            <Typography variant="h5" gutterBottom>
+              Your cart is empty
+            </Typography>
+            <Typography variant="body1" color="text.secondary" paragraph>
+              Browse our listings to find items you'd like to purchase.
+            </Typography>
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={() => navigate('/listings')}
+            >
+              Browse Listings
+            </Button>
+          </CardContent>
+        </Card>
       </Container>
     );
   }
 
   return (
-    <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+    <Container maxWidth="lg" sx={{ mt: 4 }}>
       <Typography variant="h4" gutterBottom>
-        Your Cart
+        Shopping Cart
       </Typography>
       <Grid container spacing={3}>
         <Grid item xs={12} md={8}>
@@ -58,8 +58,9 @@ const Cart = () => {
                   <CardMedia
                     component="img"
                     height="140"
-                    image={item.image_url || 'https://via.placeholder.com/300x200'}
+                    image={item.image || '/default-image.jpg'}
                     alt={item.title}
+                    sx={{ objectFit: 'cover' }}
                   />
                 </Grid>
                 <Grid item xs={8} sm={9}>
@@ -67,35 +68,17 @@ const Cart = () => {
                     <Typography variant="h6" gutterBottom>
                       {item.title}
                     </Typography>
-                    <Typography variant="body1" color="text.secondary" gutterBottom>
-                      ${item.price}
+                    <Typography variant="body2" color="text.secondary" paragraph>
+                      {item.description}
                     </Typography>
-                    <Box sx={{ display: 'flex', alignItems: 'center', mt: 2 }}>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <Typography variant="h6" color="primary">
+                        {formatPrice(item.price)}
+                      </Typography>
                       <IconButton
-                        onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                        disabled={item.quantity <= 1}
-                      >
-                        <RemoveIcon />
-                      </IconButton>
-                      <TextField
-                        value={item.quantity}
-                        onChange={(e) => {
-                          const value = parseInt(e.target.value);
-                          if (!isNaN(value) && value > 0) {
-                            updateQuantity(item.id, value);
-                          }
-                        }}
-                        inputProps={{ min: 1, style: { textAlign: 'center' } }}
-                        sx={{ width: '60px', mx: 1 }}
-                      />
-                      <IconButton
-                        onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                      >
-                        <AddIcon />
-                      </IconButton>
-                      <IconButton
+                        color="error"
                         onClick={() => removeFromCart(item.id)}
-                        sx={{ ml: 'auto' }}
+                        aria-label="remove from cart"
                       >
                         <DeleteIcon />
                       </IconButton>
@@ -112,17 +95,27 @@ const Cart = () => {
               <Typography variant="h6" gutterBottom>
                 Order Summary
               </Typography>
+              <Divider sx={{ my: 2 }} />
               <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-                <Typography>Subtotal</Typography>
-                <Typography>${getCartTotal().toFixed(2)}</Typography>
+                <Typography variant="body1">Subtotal:</Typography>
+                <Typography variant="h6">{formatPrice(getCartTotal())}</Typography>
               </Box>
               <Button
                 variant="contained"
                 color="primary"
                 fullWidth
-                sx={{ mt: 2 }}
+                onClick={() => console.log('Proceeding to checkout...')}
+                sx={{ mb: 2 }}
               >
                 Proceed to Checkout
+              </Button>
+              <Button
+                variant="outlined"
+                color="error"
+                fullWidth
+                onClick={clearCart}
+              >
+                Clear Cart
               </Button>
             </CardContent>
           </Card>
@@ -130,6 +123,6 @@ const Cart = () => {
       </Grid>
     </Container>
   );
-};
+}
 
 export default Cart; 

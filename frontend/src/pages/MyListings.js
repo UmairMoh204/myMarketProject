@@ -17,6 +17,7 @@ import {
 } from '@mui/icons-material';
 import { formatPrice, formatDate } from '../utils/utils';
 import { useAuth } from '../context/AuthContext';
+import { endpoints } from '../config/api';
 import '../styles/marketplace.css';
 
 const MyListings = () => {
@@ -31,12 +32,12 @@ const MyListings = () => {
     try {
       setLoading(true);
       const token = user?.token || localStorage.getItem('token');
-      const response = await axios.get('http://localhost:8000/api/listings/?filter=my_listings', {
+      const response = await axios.get(`${endpoints.listings}?filter=my_listings`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
       });
-      setListings(response.data);
+      setListings(response.data.results || []);
       setError(null);
     } catch (err) {
       setError('Failed to fetch your listings. Please try again later.');
@@ -124,7 +125,7 @@ const MyListings = () => {
               <Link to={`/listings/${listing.id}`} className="listing-link">
                 <Box className="marketplace-card">
                   <img
-                    src={listing.image_url || 'https://via.placeholder.com/300x200'}
+                    src={listing.image || 'https://via.placeholder.com/300x200'}
                     alt={listing.title}
                     className="marketplace-image"
                   />

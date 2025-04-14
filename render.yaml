@@ -2,27 +2,35 @@ services:
   - type: web
     name: marketplace-backend
     env: python
-    buildCommand: cd marketplace && pip install -r requirements.txt
-    startCommand: cd marketplace && gunicorn marketplace.wsgi:application --bind 0.0.0.0:$PORT
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn marketplace.wsgi:application --bind 0.0.0.0:$PORT
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.7
       - key: DJANGO_SETTINGS_MODULE
         value: marketplace.settings
+      - key: DJANGO_SECRET_KEY
+        generateValue: true
+      - key: DJANGO_DEBUG
+        value: False
+      - key: ALLOWED_HOSTS
+        value: ".onrender.com,localhost,127.0.0.1"
+      - key: CORS_ALLOWED_ORIGINS
+        value: "https://marketplace-frontend.vercel.app,http://localhost:3000"
       - key: DATABASE_URL
         fromDatabase:
           name: marketplace-db
           property: connectionString
-      - key: ALLOWED_HOSTS
-        value: .onrender.com
-      - key: CORS_ALLOWED_ORIGINS
-        value: https://marketplace-frontend.onrender.com
+      - key: STATIC_ROOT
+        value: /opt/render/project/src/staticfiles
+      - key: MEDIA_ROOT
+        value: /opt/render/project/src/media
 
   - type: web
     name: marketplace-frontend
     env: node
     buildCommand: cd frontend && npm install && npm run build
-    startCommand: cd frontend && serve -s build
+    startCommand: cd frontend && npm start
     envVars:
       - key: REACT_APP_API_URL
         value: https://marketplace-backend.onrender.com

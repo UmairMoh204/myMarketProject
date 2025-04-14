@@ -10,16 +10,15 @@ import {
   IconButton,
   useTheme,
   useMediaQuery,
-  Menu,
-  MenuItem,
   Badge,
 } from '@mui/material';
 import {
-  Search as SearchIcon,
   Notifications as NotificationsIcon,
-  AccountCircle as AccountCircleIcon,
   ShoppingCart as ShoppingCartIcon,
   Logout as LogoutIcon,
+  Add as AddIcon,
+  List as ListIcon,
+  Person as PersonIcon,
 } from '@mui/icons-material';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
@@ -29,18 +28,9 @@ function Navbar() {
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const { user, logout } = useAuth();
   const navigate = useNavigate();
-  const [anchorEl, setAnchorEl] = React.useState(null);
   const { cart } = useCart();
 
   const cartItemCount = cart.reduce((total, item) => total + item.quantity, 0);
-
-  const handleMenu = (event) => {
-    setAnchorEl(event.currentTarget);
-  };
-
-  const handleClose = () => {
-    setAnchorEl(null);
-  };
 
   const handleLogout = async () => {
     try {
@@ -49,7 +39,6 @@ function Navbar() {
     } catch (error) {
       console.error('Failed to logout:', error);
     }
-    handleClose();
   };
 
   return (
@@ -73,106 +62,75 @@ function Navbar() {
           </Typography>
 
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <Button
-              component={RouterLink}
-              to="/listings"
-              color="inherit"
-              sx={{
-                fontWeight: 500,
-                textTransform: 'none',
-                '&:hover': {
-                  backgroundColor: 'action.hover',
-                }
-              }}
-            >
-              Browse
-            </Button>
-
             {!isMobile && (
               <>
-                <IconButton color="inherit" size="large">
-                  <SearchIcon />
-                </IconButton>
-                <IconButton color="inherit" size="large">
-                  <NotificationsIcon />
+                <IconButton sx={{ color: 'black' }}>
+                  <NotificationsIcon sx={{ color: 'black' }} />
                 </IconButton>
               </>
             )}
 
-            <IconButton 
+            <IconButton
               component={RouterLink}
               to="/cart"
-              size="large"
-              sx={{ 
-                ml: 1,
-                color: 'text.primary',
-                bgcolor: 'action.hover',
-                '&:hover': {
-                  bgcolor: 'action.selected',
-                },
-                '& .MuiSvgIcon-root': {
-                  color: 'text.primary',
-                }
-              }}
+              sx={{ color: 'black' }}
             >
               <Badge badgeContent={cartItemCount} color="error">
-                <ShoppingCartIcon />
+                <ShoppingCartIcon sx={{ color: 'black' }} />
               </Badge>
+            </IconButton>
+
+            <IconButton
+              component={RouterLink}
+              to="/create-listing"
+              sx={{ color: 'black' }}
+            >
+              <AddIcon sx={{ color: 'black' }} />
+            </IconButton>
+
+            <IconButton
+              component={RouterLink}
+              to="/my-listings"
+              sx={{ color: 'black' }}
+            >
+              <ListIcon sx={{ color: 'black' }} />
             </IconButton>
 
             {user ? (
               <>
-                <IconButton 
-                  onClick={handleMenu}
-                  size="large"
-                  sx={{ 
-                    ml: 1,
-                    color: '#000000',
-                    bgcolor: 'action.hover',
-                    '&:hover': {
-                      bgcolor: 'action.selected',
-                    },
-                    '& .MuiSvgIcon-root': {
-                      color: '#000000',
-                      opacity: 1,
-                      fontSize: '28px',
-                    }
-                  }}
+                <IconButton
+                  component={RouterLink}
+                  to="/profile"
+                  sx={{ color: 'black' }}
                 >
-                  <AccountCircleIcon />
+                  <PersonIcon sx={{ color: 'black' }} />
                 </IconButton>
-                <Menu
-                  anchorEl={anchorEl}
-                  open={Boolean(anchorEl)}
-                  onClose={handleClose}
+                <IconButton
+                  onClick={handleLogout}
+                  sx={{ color: 'black' }}
                 >
-                  <MenuItem component={RouterLink} to="/profile" onClick={handleClose}>
-                    Profile
-                  </MenuItem>
-                  <MenuItem component={RouterLink} to="/my-listings" onClick={handleClose}>
-                    My Listings
-                  </MenuItem>
-                  <MenuItem onClick={handleLogout}>
-                    <LogoutIcon sx={{ mr: 1 }} /> Logout
-                  </MenuItem>
-                </Menu>
+                  <LogoutIcon sx={{ color: 'black' }} />
+                </IconButton>
               </>
             ) : (
-              <Button
-                component={RouterLink}
-                to="/login"
-                sx={{
-                  fontWeight: 600,
-                  color: '#000000',
-                  textTransform: 'none',
-                  fontSize: '1rem',
-                  '&:hover': {
-                    backgroundColor: 'action.hover',
-                  }
-                }}
-              >
-                Login
-              </Button>
+              <>
+                <Button
+                  component={RouterLink}
+                  to="/login"
+                  sx={{ color: 'black' }}
+                  startIcon={<PersonIcon sx={{ color: 'black' }} />}
+                >
+                  Login
+                </Button>
+                <Button
+                  component={RouterLink}
+                  to="/register"
+                  sx={{ color: 'black' }}
+                  startIcon={<PersonIcon sx={{ color: 'black' }} />}
+                >
+                  Register
+                </Button>
+              </>
             )}
           </Box>
         </Toolbar>
