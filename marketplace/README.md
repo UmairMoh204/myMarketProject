@@ -19,11 +19,15 @@ pip install -r requirements.txt
 Create a `.env` file with the following variables:
 ```
 DEBUG=True
-SECRET_KEY=your-secret-key
-DATABASE_URL=sqlite:///db.sqlite3
+DJANGO_SECRET_KEY=bbayw9y78!xm*1vnlqx=mo75efs%_7v9pdu#c14kb-4s+xx0od
 ALLOWED_HOSTS=localhost,127.0.0.1
 CORS_ALLOWED_ORIGINS=http://localhost:3000
+DATABASE_URL=sqlite:///db.sqlite3
+STATIC_ROOT=staticfiles
+MEDIA_ROOT=media 
 ```
+
+
 
 4. Run migrations:
 ```bash
