@@ -12,6 +12,8 @@ import {
   Divider,
   IconButton,
   Tooltip,
+  Snackbar,
+  Alert,
 } from '@mui/material';
 import {
   ArrowBack as ArrowBackIcon,
@@ -19,17 +21,21 @@ import {
   Share as ShareIcon,
   AccessTime as AccessTimeIcon,
   Person as PersonIcon,
+  ShoppingCart as ShoppingCartIcon,
 } from '@mui/icons-material';
 import axios from 'axios';
 import { formatPrice, formatDate, isValidImageUrl, getDefaultImageUrl } from '../utils/utils';
+import { useCart } from '../context/CartContext';
 import '../styles/marketplace.css';
 
 const ListingDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { addToCart } = useCart();
   const [listing, setListing] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
 
   const categoryLabels = {
     'electronics': 'Electronics',
@@ -83,6 +89,24 @@ const ListingDetail = () => {
     if (listing.seller_email) {
       window.location.href = `mailto:${listing.seller_email}?subject=Regarding your listing: ${listing.title}`;
     }
+  };
+
+  const handleAddToCart = () => {
+    addToCart({
+      id: listing.id,
+      title: listing.title,
+      price: listing.price,
+      image_url: listing.image_url,
+      seller_name: listing.seller_name,
+    });
+    setSnackbarOpen(true);
+  };
+
+  const handleCloseSnackbar = (event, reason) => {
+    if (reason === 'clickaway') {
+      return;
+    }
+    setSnackbarOpen(false);
   };
 
   if (loading) {
@@ -176,6 +200,16 @@ const ListingDetail = () => {
                   <Button
                     variant="contained"
                     color="primary"
+                    startIcon={<ShoppingCartIcon />}
+                    onClick={handleAddToCart}
+                    className="custom-button"
+                    sx={{ mr: 2 }}
+                  >
+                    Add to Cart
+                  </Button>
+                  <Button
+                    variant="outlined"
+                    color="primary"
                     startIcon={<EmailIcon />}
                     onClick={handleContactSeller}
                     className="custom-button"
@@ -226,6 +260,17 @@ const ListingDetail = () => {
           </Paper>
         </Grid>
       </Grid>
+
+      <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={3000}
+        onClose={handleCloseSnackbar}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert onClose={handleCloseSnackbar} severity="success" sx={{ width: '100%' }}>
+          Item added to cart successfully!
+        </Alert>
+      </Snackbar>
     </Container>
   );
 };
