@@ -13,29 +13,39 @@ from django.urls import reverse
 from django.utils import timezone
 from datetime import timedelta
 from django.db.models import Count
+from rest_framework.exceptions import ValidationError
 
 # Create your views here.
 
 @api_view(['POST'])
 @permission_classes([permissions.AllowAny])
 def register_user(request):
+    if not request.data:
+        return Response({'error': 'No data provided'}, status=status.HTTP_400_BAD_REQUEST)
+        
     serializer = UserSerializer(data=request.data)
     if serializer.is_valid():
-        user = User.objects.create_user(
-            username=serializer.validated_data['username'],
-            email=serializer.validated_data.get('email', ''),
-            password=request.data.get('password', '')
-        )
-        return Response(UserSerializer(user).data, status=status.HTTP_201_CREATED)
+        try:
+            user = User.objects.create_user(
+                username=serializer.validated_data['username'],
+                email=serializer.validated_data.get('email', ''),
+                password=request.data.get('password', '')
+            )
+            return Response(UserSerializer(user).data, status=status.HTTP_201_CREATED)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class BaseModelViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_object(self):
-        if hasattr(self, 'get_or_create_object'):
-            return self.get_or_create_object()
-        return super().get_object()
+        try:
+            if hasattr(self, 'get_or_create_object'):
+                return self.get_or_create_object()
+            return super().get_object()
+        except Exception as e:
+            raise ValidationError(detail=str(e))
 
 class UserProfileViewSet(BaseModelViewSet):
     serializer_class = UserProfileSerializer
@@ -44,7 +54,10 @@ class UserProfileViewSet(BaseModelViewSet):
         return UserProfile.objects.filter(user=self.request.user)
 
     def get_or_create_object(self):
-        return UserProfile.objects.get_or_create(user=self.request.user)[0]
+        try:
+            return UserProfile.objects.get_or_create(user=self.request.user)[0]
+        except Exception as e:
+            raise ValidationError(detail=str(e))
 
 class ListingViewSet(viewsets.ModelViewSet):
     queryset = Listing.objects.all()
@@ -56,49 +69,58 @@ class ListingViewSet(viewsets.ModelViewSet):
     ordering_fields = ['price', 'created_at', 'view_count']
 
     def get_queryset(self):
-        filter_by = self.request.query_params.get('filter', None)
-        queryset = Listing.objects.all()
+        try:
+            filter_by = self.request.query_params.get('filter', None)
+            queryset = Listing.objects.all()
 
-        if filter_by == 'my_listings' and self.request.user.is_authenticated:
-            queryset = queryset.filter(owner=self.request.user)
-        else:
-            queryset = queryset.filter(is_active=True)
+            if filter_by == 'my_listings' and self.request.user.is_authenticated:
+                queryset = queryset.filter(owner=self.request.user)
+            else:
+                queryset = queryset.filter(is_active=True)
 
-        ordering = {
-            'popular': '-view_count',
-            'recent': '-created_at',
-            'price_low': 'price',
-            'price_high': '-price'
-        }.get(filter_by, '-created_at')
+            ordering = {
+                'popular': '-view_count',
+                'recent': '-created_at',
+                'price_low': 'price',
+                'price_high': '-price'
+            }.get(filter_by, '-created_at')
 
-        return queryset.order_by(ordering)
+            return queryset.order_by(ordering)
+        except Exception as e:
+            raise ValidationError(detail=str(e))
 
     def perform_create(self, serializer):
-        serializer.save(owner=self.request.user, is_active=True)
+        try:
+            serializer.save(owner=self.request.user, is_active=True)
+        except Exception as e:
+            raise ValidationError(detail=str(e))
 
     @action(detail=True, methods=['post'])
     def contact(self, request, pk=None):
-        listing = self.get_object()
-        content = request.data.get('message')
-        
-        if not content:
-            return Response({'error': 'Message content is required'}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            listing = self.get_object()
+            content = request.data.get('message')
             
-        conversation = Conversation.objects.filter(
-            listing=listing,
-            participants=request.user
-        ).first() or Conversation.objects.create(listing=listing)
-        
-        if not conversation.participants.filter(id=request.user.id).exists():
-            conversation.participants.add(request.user, listing.owner)
+            if not content:
+                return Response({'error': 'Message content is required'}, status=status.HTTP_400_BAD_REQUEST)
+                
+            conversation = Conversation.objects.filter(
+                listing=listing,
+                participants=request.user
+            ).first() or Conversation.objects.create(listing=listing)
             
-        message = Message.objects.create(
-            conversation=conversation,
-            sender=request.user,
-            content=content
-        )
-        
-        return Response(MessageSerializer(message).data, status=status.HTTP_201_CREATED)
+            if not conversation.participants.filter(id=request.user.id).exists():
+                conversation.participants.add(request.user, listing.owner)
+                
+            message = Message.objects.create(
+                conversation=conversation,
+                sender=request.user,
+                content=content
+            )
+            
+            return Response(MessageSerializer(message).data, status=status.HTTP_201_CREATED)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 class CartViewSet(BaseModelViewSet):
     serializer_class = CartSerializer
