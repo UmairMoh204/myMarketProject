@@ -20,4 +20,9 @@ import axios from 'axios';
 axios.defaults.headers.common['Content-Type'] = 'application/json';
 axios.defaults.headers.common['Accept'] = 'application/json';
 
+// Configure axios for development
+if (process.env.NODE_ENV === 'development') {
+  axios.defaults.withCredentials = true;
+}
+
 export default BASE_URL; 
