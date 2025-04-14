@@ -1,12 +1,26 @@
-
+.shop {
+  display: flex; 
+  flex-direction: row;
+  justify-content: space-between; 
+  align-items: flex-start; 
+}
 
 .sideNav {
-    width: 30%;
-    height: 500px;
-    margin-left: 90px;
-    margin-top: 40px;
-    background-color: #ffffff;
-    padding-top: 50px;
-    border: 2px solid black;
-    border-radius: 20px;
+  width: 20%;
+  height: 93.5vh; 
+  margin-left: 20px; 
+  margin-top: 40px;
+  background-color: #ffffff;
+  padding-top: 50px;
+  border: 2px solid black;
+}
+
+.inventoryContainer {
+  width: 75%; 
+  height: 100vh; 
+  margin-top: 40px;
+  background-color: #ffffff;
+  padding-top: 50px;
+  border: 2px solid black;
+  box-sizing: border-box; 
 }

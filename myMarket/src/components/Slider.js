@@ -12,12 +12,16 @@ const Slider = ({ slides }) => {
     return () => clearInterval(interval);
   }, [slides.length]);
 
+  const slideWidth = 100; 
+  const gap = 20; 
+  const slideWidthWithGap = slideWidth + (gap / window.innerWidth) * 115;
+
   return (
     <div className="Slider">
       <div
         className="Slider-Track"
         style={{
-          transform: `translateX(-${currentIndex * 100}%)`,
+          transform: `translateX(-${currentIndex * slideWidthWithGap }%)`,
         }}
       >
         {slides.map((slide, index) => (
