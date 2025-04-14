@@ -1,7 +1,10 @@
+import React from 'react';
+import { CssBaseline, AppBar, Toolbar, Typography, Container } from '@mui/material';
 import './App.css';
 import Sidebar from './components/Sidebar';
 import Slider from './components/Slider';
 import ItemSlider from './components/ItemSlider';
+import ListingList from './components/ListingList';
 
 function App() {
   const slides = [
@@ -13,24 +16,19 @@ function App() {
   ]                     
 
   return (
-    <div className="App">
-      <nav className="App-Nav">
-        <ul>
-          <li><a href="#home"> Home </a></li>
-          <li><a href="#shop"> Shop </a></li>
-          <li><a href="#cart"> Cart </a></li>
-          <li><a href="#signin"> Sign In </a></li>
-        </ul>
-      </nav>
-      {/* <h1>Welcome To My MarketPlace</h1> */}
-      <div className='SliderContainerStyling'>
-        <Slider slides={slides} />
-      </div>
-      <div>
-        <h2 style={{ margin: '50px' }}>What's New</h2>
-      </div>
-      <ItemSlider />
-    </div>
+    <>
+      <CssBaseline />
+      <AppBar position="static">
+        <Toolbar>
+          <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+            MyMarket
+          </Typography>
+        </Toolbar>
+      </AppBar>
+      <Container>
+        <ListingList />
+      </Container>
+    </>
   );
 }
 
