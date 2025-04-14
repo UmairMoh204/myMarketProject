@@ -1,276 +1,194 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import axios from 'axios';
 import {
   Container,
-  Grid,
   Paper,
   Typography,
   Button,
-  Chip,
-  CircularProgress,
   Box,
-  Divider,
-  IconButton,
-  Tooltip,
-  Snackbar,
+  Grid,
+  Chip,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  TextField,
   Alert,
 } from '@mui/material';
-import {
-  ArrowBack as ArrowBackIcon,
-  Email as EmailIcon,
-  Share as ShareIcon,
-  AccessTime as AccessTimeIcon,
-  Person as PersonIcon,
-  ShoppingCart as ShoppingCartIcon,
-} from '@mui/icons-material';
-import axios from 'axios';
-import { formatPrice, formatDate, isValidImageUrl, getDefaultImageUrl } from '../utils/utils';
-import { useCart } from '../context/CartContext';
-import '../styles/marketplace.css';
+import { endpoints } from '../config/api';
 
 const ListingDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { addToCart } = useCart();
+  const { user } = useAuth();
   const [listing, setListing] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [snackbarOpen, setSnackbarOpen] = useState(false);
-
-  const categoryLabels = {
-    'electronics': 'Electronics',
-    'clothing': 'Clothing',
-    'home': 'Home & Garden',
-    'sports': 'Sports & Outdoors',
-    'books': 'Books & Media',
-    'toys': 'Toys & Games',
-    'other': 'Other'
-  };
-
-  const conditionLabels = {
-    'new': 'New',
-    'like_new': 'Like New',
-    'good': 'Good',
-    'fair': 'Fair',
-    'poor': 'Poor'
-  };
+  const [error, setError] = useState('');
+  const [openDialog, setOpenDialog] = useState(false);
+  const [message, setMessage] = useState('');
 
   useEffect(() => {
-    const fetchListing = async () => {
-      try {
-        const response = await axios.get(`http://localhost:8000/api/listings/${id}/`);
-        setListing(response.data);
-        setLoading(false);
-      } catch (err) {
-        setError('Failed to load listing details. Please try again later.');
-        setLoading(false);
-      }
-    };
-
     fetchListing();
   }, [id]);
 
-  const handleShare = () => {
-    if (navigator.share) {
-      navigator.share({
-        title: listing.title,
-        text: listing.description,
-        url: window.location.href,
-      });
-    } else {
-      // Fallback for browsers that don't support Web Share API
-      const url = window.location.href;
-      navigator.clipboard.writeText(url);
-      alert('Link copied to clipboard!');
+  const fetchListing = async () => {
+    try {
+      const response = await axios.get(endpoints.listing(id));
+      setListing(response.data);
+      setLoading(false);
+    } catch (error) {
+      console.error('Error fetching listing:', error);
+      setError('Failed to load listing. Please try again later.');
+      setLoading(false);
     }
   };
 
-  const handleContactSeller = () => {
-    if (listing.seller_email) {
-      window.location.href = `mailto:${listing.seller_email}?subject=Regarding your listing: ${listing.title}`;
-    }
-  };
-
-  const handleAddToCart = () => {
-    addToCart({
-      id: listing.id,
-      title: listing.title,
-      price: listing.price,
-      image_url: listing.image_url,
-      seller_name: listing.seller_name,
-    });
-    setSnackbarOpen(true);
-  };
-
-  const handleCloseSnackbar = (event, reason) => {
-    if (reason === 'clickaway') {
+  const handleContact = () => {
+    if (!user) {
+      navigate('/login');
       return;
     }
-    setSnackbarOpen(false);
+    setOpenDialog(true);
+  };
+
+  const handleSendMessage = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      await axios.post(`${endpoints.listing(id)}/contact/`, {
+        message,
+      }, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      setOpenDialog(false);
+      setMessage('');
+      // Show success message or notification here
+    } catch (error) {
+      console.error('Error sending message:', error);
+      setError('Failed to send message. Please try again.');
+    }
   };
 
   if (loading) {
     return (
-      <Box className="loading-spinner">
-        <CircularProgress />
-      </Box>
+      <Container>
+        <Typography>Loading...</Typography>
+      </Container>
     );
   }
 
   if (error) {
     return (
-      <Container maxWidth="md" className="error-message">
-        <Typography variant="h6">{error}</Typography>
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={() => navigate('/listings')}
-          className="custom-button"
-          style={{ marginTop: '16px' }}
-        >
-          Back to Listings
-        </Button>
+      <Container>
+        <Alert severity="error">{error}</Alert>
       </Container>
     );
   }
 
   if (!listing) {
     return (
-      <Container maxWidth="md" className="empty-state">
-        <Typography variant="h6">Listing not found</Typography>
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={() => navigate('/listings')}
-          className="custom-button"
-          style={{ marginTop: '16px' }}
-        >
-          Back to Listings
-        </Button>
+      <Container>
+        <Alert severity="error">Listing not found</Alert>
       </Container>
     );
   }
 
   return (
-    <Container maxWidth="lg" className="fade-in">
-      <Button
-        startIcon={<ArrowBackIcon />}
-        onClick={() => navigate('/listings')}
-        className="back-button"
-      >
-        Back to Listings
-      </Button>
-
-      <Grid container spacing={4}>
-        <Grid item xs={12} md={8}>
-          <Paper className="listing-detail-card" elevation={2}>
-            <img
-              src={isValidImageUrl(listing.image_url) ? listing.image_url : getDefaultImageUrl()}
-              alt={listing.title}
-              className="marketplace-image"
-              style={{ height: '400px' }}
-            />
-            <Box p={3}>
-              <Typography variant="h4" className="listing-title">
-                {listing.title}
-              </Typography>
-              <Box display="flex" alignItems="center" mb={2}>
-                <Typography variant="h5" className="price-tag">
-                  {formatPrice(listing.price)}
-                </Typography>
-                <Chip
-                  icon={<AccessTimeIcon />}
-                  label={formatDate(listing.created_at)}
-                  size="small"
-                  style={{ marginLeft: '16px' }}
-                />
+    <Container maxWidth="md">
+      <Paper elevation={3} sx={{ p: 4, mt: 4 }}>
+        <Grid container spacing={4}>
+          <Grid item xs={12} md={6}>
+            {listing.image_url ? (
+              <img
+                src={listing.image_url}
+                alt={listing.title}
+                style={{ width: '100%', height: 'auto', borderRadius: '8px' }}
+              />
+            ) : (
+              <Box
+                sx={{
+                  width: '100%',
+                  height: 300,
+                  bgcolor: 'grey.200',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  borderRadius: '8px',
+                }}
+              >
+                <Typography color="textSecondary">No image available</Typography>
               </Box>
-              <Typography variant="body1" paragraph>
-                {listing.description}
-              </Typography>
-              <Divider style={{ margin: '24px 0' }} />
-              <Box className="seller-info">
-                <Box display="flex" alignItems="center" mb={2}>
-                  <PersonIcon style={{ marginRight: '8px' }} />
-                  <Typography variant="subtitle1">
-                    Listed by: {listing.seller_name || 'Anonymous'}
-                  </Typography>
-                </Box>
-                <Box display="flex" gap={2}>
-                  <Button
-                    variant="contained"
-                    color="primary"
-                    startIcon={<ShoppingCartIcon />}
-                    onClick={handleAddToCart}
-                    className="custom-button"
-                    sx={{ mr: 2 }}
-                  >
-                    Add to Cart
-                  </Button>
-                  <Button
-                    variant="outlined"
-                    color="primary"
-                    startIcon={<EmailIcon />}
-                    onClick={handleContactSeller}
-                    className="custom-button"
-                  >
-                    Contact Seller
-                  </Button>
-                  <Tooltip title="Share listing">
-                    <IconButton
-                      onClick={handleShare}
-                      className="share-button"
-                      size="large"
-                    >
-                      <ShareIcon />
-                    </IconButton>
-                  </Tooltip>
-                </Box>
-              </Box>
+            )}
+          </Grid>
+          <Grid item xs={12} md={6}>
+            <Typography variant="h4" component="h1" gutterBottom>
+              {listing.title}
+            </Typography>
+            <Typography variant="h5" color="primary" gutterBottom>
+              ${listing.price}
+            </Typography>
+            <Typography variant="body1" paragraph>
+              {listing.description}
+            </Typography>
+            <Box sx={{ mb: 2 }}>
+              <Chip
+                label={listing.category}
+                color="primary"
+                variant="outlined"
+                sx={{ mr: 1 }}
+              />
+              <Chip
+                label={listing.condition}
+                color="secondary"
+                variant="outlined"
+                sx={{ mr: 1 }}
+              />
+              <Chip
+                label={listing.location}
+                variant="outlined"
+              />
             </Box>
-          </Paper>
+            <Typography variant="subtitle2" color="textSecondary" gutterBottom>
+              Listed by: {listing.owner_name}
+            </Typography>
+            <Button
+              variant="contained"
+              color="primary"
+              size="large"
+              fullWidth
+              onClick={handleContact}
+              sx={{ mt: 2 }}
+            >
+              Contact Seller
+            </Button>
+          </Grid>
         </Grid>
-        <Grid item xs={12} md={4}>
-          <Paper className="listing-detail-card" elevation={2}>
-            <Box p={3}>
-              <Typography variant="h6" gutterBottom>
-                Listing Details
-              </Typography>
-              <Box mb={2}>
-                <Typography variant="subtitle2" color="textSecondary">
-                  Category
-                </Typography>
-                <Chip label={categoryLabels[listing.category] || 'Uncategorized'} />
-              </Box>
-              <Box mb={2}>
-                <Typography variant="subtitle2" color="textSecondary">
-                  Condition
-                </Typography>
-                <Chip label={conditionLabels[listing.condition] || 'Not specified'} />
-              </Box>
-              <Box mb={2}>
-                <Typography variant="subtitle2" color="textSecondary">
-                  Location
-                </Typography>
-                <Typography variant="body2">
-                  {listing.location || 'Location not specified'}
-                </Typography>
-              </Box>
-            </Box>
-          </Paper>
-        </Grid>
-      </Grid>
+      </Paper>
 
-      <Snackbar
-        open={snackbarOpen}
-        autoHideDuration={3000}
-        onClose={handleCloseSnackbar}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-      >
-        <Alert onClose={handleCloseSnackbar} severity="success" sx={{ width: '100%' }}>
-          Item added to cart successfully!
-        </Alert>
-      </Snackbar>
+      <Dialog open={openDialog} onClose={() => setOpenDialog(false)}>
+        <DialogTitle>Contact Seller</DialogTitle>
+        <DialogContent>
+          <TextField
+            autoFocus
+            margin="dense"
+            label="Message"
+            fullWidth
+            multiline
+            rows={4}
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpenDialog(false)}>Cancel</Button>
+          <Button onClick={handleSendMessage} variant="contained" color="primary">
+            Send Message
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Container>
   );
 };

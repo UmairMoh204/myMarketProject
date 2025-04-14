@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import axios from 'axios';
+import { endpoints } from '../config/api';
 
 const AuthContext = createContext(null);
 
@@ -26,11 +27,11 @@ export const AuthProvider = ({ children }) => {
   const login = async (email, password) => {
     try {
       // First, get the username from the email
-      const userResponse = await axios.get(`http://localhost:8000/api/user-by-email/${email}/`);
+      const userResponse = await axios.get(endpoints.userByEmail(email));
       const username = userResponse.data.username;
 
       // Then login with the username
-      const response = await axios.post('http://localhost:8000/api/token/', {
+      const response = await axios.post(endpoints.login, {
         username: username,
         password: password,
       });
@@ -63,7 +64,7 @@ export const AuthProvider = ({ children }) => {
 
   const register = async (username, email, password) => {
     try {
-      await axios.post('http://localhost:8000/api/register/', {
+      await axios.post(endpoints.register, {
         username,
         email,
         password,

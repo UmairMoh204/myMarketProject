@@ -21,6 +21,7 @@ import {
 } from '@mui/icons-material';
 import { formatPrice, formatDate } from '../utils/utils';
 import { useAuth } from '../context/AuthContext';
+import { endpoints } from '../config/api';
 import '../styles/marketplace.css';
 
 const Listings = () => {
@@ -36,7 +37,7 @@ const Listings = () => {
     try {
       setLoading(true);
       const token = user?.token || localStorage.getItem('token');
-      const response = await axios.get(`http://localhost:8000/api/listings/?filter=${filter}`, {
+      const response = await axios.get(`${endpoints.listings}?filter=${filter}`, {
         headers: token ? {
           'Authorization': `Bearer ${token}`
         } : {}
@@ -67,10 +68,10 @@ const Listings = () => {
   );
 
   const handleCreateListingClick = () => {
-    if (user) {
-      navigate('/create-listing');
+    if (!user) {
+      navigate('/login');
     } else {
-      navigate('/login', { state: { from: '/listings' } });
+      navigate('/create-listing');
     }
   };
 
@@ -86,27 +87,37 @@ const Listings = () => {
     return (
       <Container maxWidth="md" className="error-message">
         <Typography variant="h6">{error}</Typography>
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={fetchListings}
+          className="custom-button"
+          style={{ marginTop: '16px' }}
+        >
+          Retry
+        </Button>
       </Container>
     );
   }
 
   return (
-    <Container maxWidth="lg" className="fade-in">
-      <Box sx={{ mb: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+    <Container maxWidth="lg" className="listings-container">
+      <Box className="listings-header">
         <Typography variant="h4" component="h1" gutterBottom>
           Marketplace Listings
         </Typography>
         <Button
-          onClick={handleCreateListingClick}
           variant="contained"
           color="primary"
-          className="custom-button"
+          onClick={handleCreateListingClick}
+          className="create-button"
+          startIcon={<AddIcon />}
         >
-          {user ? 'Create Listing' : 'Sign in to Create Listing'}
+          Create Listing
         </Button>
       </Box>
 
-      <Box sx={{ mb: 4 }}>
+      <Box className="search-filter-container">
         <TextField
           fullWidth
           variant="outlined"
@@ -122,75 +133,63 @@ const Listings = () => {
             ),
           }}
         />
-      </Box>
 
-      <Box sx={{ mb: 4 }}>
         <ToggleButtonGroup
           value={filter}
           exclusive
           onChange={handleFilterChange}
-          aria-label="listing filters"
+          aria-label="listing filter"
           className="filter-buttons"
         >
-          {user && (
-            <ToggleButton value="my_listings" aria-label="my listings">
-              <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                My Listings
-              </Box>
-            </ToggleButton>
-          )}
-          <ToggleButton value="recent" aria-label="most recent">
-            <AccessTimeIcon sx={{ mr: 1 }} />
-            Most Recent
+          <ToggleButton value="recent" aria-label="recent listings">
+            <AccessTimeIcon />
+            Recent
           </ToggleButton>
-          <ToggleButton value="popular" aria-label="popular">
-            <TrendingUpIcon sx={{ mr: 1 }} />
+          <ToggleButton value="popular" aria-label="popular listings">
+            <TrendingUpIcon />
             Popular
           </ToggleButton>
           <ToggleButton value="price_low" aria-label="price low to high">
-            <AttachMoneyIcon sx={{ mr: 1 }} />
+            <AttachMoneyIcon />
             Price: Low to High
           </ToggleButton>
           <ToggleButton value="price_high" aria-label="price high to low">
-            <AttachMoneyIcon sx={{ mr: 1 }} />
+            <AttachMoneyIcon />
             Price: High to Low
           </ToggleButton>
         </ToggleButtonGroup>
       </Box>
 
       {filteredListings.length === 0 ? (
-        <Box className="empty-state">
+        <Box className="no-listings">
           <Typography variant="h6">No listings found</Typography>
-          <Typography variant="body1" color="textSecondary">
-            Try adjusting your search or filters
-          </Typography>
+          {searchTerm && (
+            <Typography variant="body1">
+              Try adjusting your search terms
+            </Typography>
+          )}
         </Box>
       ) : (
         <Grid container spacing={3}>
           {filteredListings.map((listing) => (
             <Grid item xs={12} sm={6} md={4} key={listing.id}>
               <Link to={`/listings/${listing.id}`} className="listing-link">
-                <Box className="marketplace-card">
+                <Box className="listing-card">
                   <img
-                    src={listing.image_url || 'https://via.placeholder.com/300x200'}
+                    src={listing.image_url || getDefaultImageUrl()}
                     alt={listing.title}
-                    className="marketplace-image"
+                    className="listing-image"
                   />
-                  <Box p={2}>
+                  <Box className="listing-details">
                     <Typography variant="h6" className="listing-title">
                       {listing.title}
                     </Typography>
-                    <Typography variant="body2" color="textSecondary" className="listing-description">
-                      {listing.description}
+                    <Typography variant="body1" className="listing-price">
+                      {formatPrice(listing.price)}
                     </Typography>
-                    <Box sx={{ mt: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <Typography variant="h6" className="listing-price">
-                        {formatPrice(listing.price)}
-                      </Typography>
-                      <Typography variant="caption" color="textSecondary">
-                        {formatDate(listing.created_at)}
-                      </Typography>
-                    </Box>
+                    <Typography variant="body2" className="listing-date">
+                      Posted {formatDate(listing.created_at)}
+                    </Typography>
                   </Box>
                 </Box>
               </Link>

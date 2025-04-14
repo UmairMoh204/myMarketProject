@@ -12,6 +12,7 @@ import {
   MenuItem,
   Alert,
 } from '@mui/material';
+import { endpoints } from '../config/api';
 
 const CreateListing = () => {
   const navigate = useNavigate();
@@ -43,7 +44,7 @@ const CreateListing = () => {
 
     try {
       const token = localStorage.getItem('token');
-      await axios.post('http://localhost:8000/api/listings/', formData, {
+      await axios.post(endpoints.listings, formData, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -56,7 +57,7 @@ const CreateListing = () => {
   };
 
   return (
-    <Container maxWidth="sm">
+    <Container maxWidth="md">
       <Paper elevation={3} sx={{ p: 4, mt: 4 }}>
         <Typography variant="h4" component="h1" gutterBottom>
           Create New Listing
@@ -66,15 +67,15 @@ const CreateListing = () => {
             {error}
           </Alert>
         )}
-        <Box component="form" onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit}>
           <TextField
             fullWidth
             label="Title"
             name="title"
             value={formData.title}
             onChange={handleChange}
-            margin="normal"
             required
+            margin="normal"
           />
           <TextField
             fullWidth
@@ -82,10 +83,10 @@ const CreateListing = () => {
             name="description"
             value={formData.description}
             onChange={handleChange}
-            margin="normal"
+            required
             multiline
             rows={4}
-            required
+            margin="normal"
           />
           <TextField
             fullWidth
@@ -94,8 +95,11 @@ const CreateListing = () => {
             type="number"
             value={formData.price}
             onChange={handleChange}
-            margin="normal"
             required
+            margin="normal"
+            InputProps={{
+              startAdornment: <Typography>$</Typography>,
+            }}
           />
           <TextField
             fullWidth
@@ -112,14 +116,15 @@ const CreateListing = () => {
             name="category"
             value={formData.category}
             onChange={handleChange}
-            margin="normal"
             required
+            margin="normal"
           >
             <MenuItem value="electronics">Electronics</MenuItem>
             <MenuItem value="clothing">Clothing</MenuItem>
-            <MenuItem value="books">Books</MenuItem>
             <MenuItem value="home">Home & Garden</MenuItem>
-            <MenuItem value="sports">Sports</MenuItem>
+            <MenuItem value="sports">Sports & Outdoors</MenuItem>
+            <MenuItem value="books">Books & Media</MenuItem>
+            <MenuItem value="toys">Toys & Games</MenuItem>
             <MenuItem value="other">Other</MenuItem>
           </TextField>
           <TextField
@@ -129,8 +134,8 @@ const CreateListing = () => {
             name="condition"
             value={formData.condition}
             onChange={handleChange}
-            margin="normal"
             required
+            margin="normal"
           >
             <MenuItem value="new">New</MenuItem>
             <MenuItem value="like_new">Like New</MenuItem>
@@ -144,20 +149,21 @@ const CreateListing = () => {
             name="location"
             value={formData.location}
             onChange={handleChange}
-            margin="normal"
             required
+            margin="normal"
           />
-          <Button
-            type="submit"
-            variant="contained"
-            color="primary"
-            fullWidth
-            size="large"
-            sx={{ mt: 3 }}
-          >
-            Create Listing
-          </Button>
-        </Box>
+          <Box sx={{ mt: 3 }}>
+            <Button
+              type="submit"
+              variant="contained"
+              color="primary"
+              size="large"
+              fullWidth
+            >
+              Create Listing
+            </Button>
+          </Box>
+        </form>
       </Paper>
     </Container>
   );
