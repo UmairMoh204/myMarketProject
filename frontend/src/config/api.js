@@ -25,6 +25,8 @@ if (process.env.NODE_ENV === 'development') {
   axios.defaults.withCredentials = true;
   // Disable HTTPS requirement in development
   axios.defaults.httpsAgent = null;
+  // Force HTTP in development
+  axios.defaults.baseURL = 'http://localhost:8000';
 }
 
 export default BASE_URL; 

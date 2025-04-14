@@ -167,7 +167,7 @@ if not DEBUG:
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
     SECURE_HSTS_PRELOAD = True
 else:
-    # Disable all HTTPS-related settings in development
+    # Completely disable all HTTPS-related settings in development
     SECURE_SSL_REDIRECT = False
     SESSION_COOKIE_SECURE = False
     CSRF_COOKIE_SECURE = False
@@ -176,8 +176,10 @@ else:
     SECURE_HSTS_SECONDS = 0
     SECURE_HSTS_INCLUDE_SUBDOMAINS = False
     SECURE_HSTS_PRELOAD = False
-    # Allow HTTP in development
+    # Explicitly allow HTTP in development
     SECURE_SSL_REDIRECT = False
     # Disable HTTPS requirement
     SECURE_PROXY_SSL_HEADER = None
     SECURE_SSL_HOST = None
+    # Disable security middleware in development
+    MIDDLEWARE = [m for m in MIDDLEWARE if m != 'django.middleware.security.SecurityMiddleware']
