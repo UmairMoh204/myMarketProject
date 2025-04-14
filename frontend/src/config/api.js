@@ -1,13 +1,15 @@
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
+const BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
 
 export const endpoints = {
-  listings: `${API_URL}/api/listings/`,
-  listing: (id) => `${API_URL}/api/listings/${id}/`,
-  myListings: `${API_URL}/api/listings/my-listings/`,
-  register: `${API_URL}/api/register/`,
-  login: `${API_URL}/api/token/`,
-  userProfile: `${API_URL}/api/user/profile/`,
-  userByEmail: (email) => `${API_URL}/api/user-by-email/${email}/`,
+  auth: {
+    login: `${BASE_URL}/api/auth/login/`,
+    register: `${BASE_URL}/api/auth/register/`,
+    refresh: `${BASE_URL}/api/auth/token/refresh/`,
+  },
+  listings: `${BASE_URL}/api/listings/`,
+  listing: (id) => `${BASE_URL}/api/listings/${id}/`,
+  myListings: `${BASE_URL}/api/listings/my-listings/`,
+  userProfile: `${BASE_URL}/api/user/profile/`,
 };
 
-export default API_URL; 
+export default BASE_URL; 
