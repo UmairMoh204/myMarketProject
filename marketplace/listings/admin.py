@@ -8,3 +8,10 @@ class ListingAdmin(admin.ModelAdmin):
     search_fields = ('title', 'description', 'owner__username')
     ordering = ('-created_at',)
     readonly_fields = ('created_at', 'updated_at')
+    
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        # Only show active listings by default
+        if not request.GET.get('is_active'):
+            return qs.filter(is_active=True)
+        return qs

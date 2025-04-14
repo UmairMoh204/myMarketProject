@@ -37,7 +37,7 @@ const ListingDetail = () => {
 
   const fetchListing = useCallback(async () => {
     try {
-      const response = await axios.get(`${endpoints.listing(id)}/`);
+      const response = await axios.get(endpoints.listing(id));
       setListing(response.data);
       setLoading(false);
     } catch (error) {
