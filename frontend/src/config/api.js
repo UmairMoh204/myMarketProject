@@ -23,6 +23,8 @@ axios.defaults.headers.common['Accept'] = 'application/json';
 // Configure axios for development
 if (process.env.NODE_ENV === 'development') {
   axios.defaults.withCredentials = true;
+  // Disable HTTPS requirement in development
+  axios.defaults.httpsAgent = null;
 }
 
 export default BASE_URL; 
