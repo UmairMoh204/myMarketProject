@@ -2,13 +2,13 @@ services:
   - type: web
     name: marketplace-backend
     env: python
-    buildCommand: pip install -r requirements.txt
-    startCommand: gunicorn marketplace.marketplace.wsgi:application
+    buildCommand: cd marketplace && pip install -r requirements.txt
+    startCommand: cd marketplace && gunicorn marketplace.wsgi:application --bind 0.0.0.0:$PORT
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.7
       - key: DJANGO_SETTINGS_MODULE
-        value: marketplace.marketplace.settings
+        value: marketplace.settings
       - key: DATABASE_URL
         fromDatabase:
           name: marketplace-db

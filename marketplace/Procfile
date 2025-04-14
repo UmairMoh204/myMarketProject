@@ -1,1 +1,1 @@
-web: gunicorn marketplace.wsgi:application --log-file - --bind 0.0.0.0:$PORT --workers 3 --timeout 120 
+web: cd marketplace && gunicorn marketplace.wsgi:application --log-file - --bind 0.0.0.0:$PORT --workers 3 --timeout 120 
