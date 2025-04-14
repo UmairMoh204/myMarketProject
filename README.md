@@ -9,7 +9,83 @@ myMarketProject/
 └── frontend/       # React frontend
 ```
 
-## Development Setup
+## Quick Start Guide
+
+### Step 1: Clone the Repository
+```powershell
+git clone https://github.com/yourusername/myMarketProject.git
+cd myMarketProject
+```
+
+### Step 2: Set Up the Backend
+
+1. Create and activate a virtual environment:
+```powershell
+# Create virtual environment
+python -m venv venv
+
+# Activate virtual environment (Windows PowerShell)
+.\venv\Scripts\Activate
+```
+
+2. Install backend dependencies:
+```powershell
+# Navigate to the marketplace directory
+cd marketplace
+
+# Install dependencies
+pip install -r requirements.txt
+```
+
+3. Set up environment variables:
+```powershell
+# Create a .env file in the marketplace directory with:
+DEBUG=True
+DJANGO_SECRET_KEY=your-secret-key
+ALLOWED_HOSTS=localhost,127.0.0.1
+CORS_ALLOWED_ORIGINS=http://localhost:3000
+DATABASE_URL=sqlite:///db.sqlite3
+STATIC_ROOT=staticfiles
+MEDIA_ROOT=media
+```
+
+4. Run database migrations:
+```powershell
+# Make sure you're in the marketplace directory
+python manage.py migrate
+```
+
+5. Start the Django development server:
+```powershell
+# In PowerShell, use semicolon instead of &&
+python manage.py runserver
+```
+
+The backend API will be available at `http://localhost:8000`
+
+### Step 3: Set Up the Frontend
+
+1. Open a new terminal window (keep the backend server running)
+
+2. Navigate to the frontend directory:
+```powershell
+# From the project root
+cd frontend
+```
+
+3. Install frontend dependencies:
+```powershell
+npm install
+```
+
+4. Start the React development server:
+```powershell
+npm start
+```
+
+The frontend will be available at `http://localhost:3000`
+
+## Detailed Setup Instructions
 
 ### Backend Setup
 
@@ -32,10 +108,13 @@ pip install -r requirements.txt
 3. Set up environment variables:
 ```powershell
 # Create a .env file in the marketplace directory with:
+DEBUG=True
 DJANGO_SECRET_KEY=your-secret-key
-DJANGO_DEBUG=True
 ALLOWED_HOSTS=localhost,127.0.0.1
 CORS_ALLOWED_ORIGINS=http://localhost:3000
+DATABASE_URL=sqlite:///db.sqlite3
+STATIC_ROOT=staticfiles
+MEDIA_ROOT=media
 ```
 
 4. Run database migrations:
@@ -47,7 +126,7 @@ python manage.py migrate
 5. Start the Django development server:
 ```powershell
 # In PowerShell, use semicolon instead of &&
-cd marketplace; $env:PYTHONPATH = "."; python manage.py runserver
+python manage.py runserver
 ```
 
 The backend API will be available at:
@@ -98,7 +177,6 @@ The frontend will be available at `http://localhost:3000`
 
 - PowerShell Command Tips:
   - Use semicolon (`;`) instead of `&&` to chain commands
-  - Set Python path before running Django server: `$env:PYTHONPATH = "."`
   - Always run Django commands from the `marketplace` directory
   - Always run npm commands from the `frontend` directory
 
@@ -122,6 +200,11 @@ The frontend will be available at `http://localhost:3000`
    - Check that Node.js is installed
    - Try deleting `node_modules` and running `npm install` again
 
+4. If you see "only supports http" error:
+   - Make sure you're using the latest code with our security settings updates
+   - Check that both servers are running (Django on port 8000, React on port 3000)
+   - Try clearing your browser cache or using a different browser
+
 ## API Documentation
 
 The API documentation is available at:
@@ -132,10 +215,13 @@ The API documentation is available at:
 
 Create a `.env` file in the `marketplace` directory with the following variables:
 ```
+DEBUG=True
 DJANGO_SECRET_KEY=your-secret-key
-DJANGO_DEBUG=True
 ALLOWED_HOSTS=localhost,127.0.0.1
 CORS_ALLOWED_ORIGINS=http://localhost:3000
+DATABASE_URL=sqlite:///db.sqlite3
+STATIC_ROOT=staticfiles
+MEDIA_ROOT=media
 ```
 
 ## Features
@@ -150,7 +236,7 @@ CORS_ALLOWED_ORIGINS=http://localhost:3000
 ## Tech Stack
 
 ### Backend
-- Django 5.0.3
+- Django 5.2
 - Django REST Framework 3.14.0
 - PostgreSQL
 - JWT Authentication
@@ -169,47 +255,7 @@ CORS_ALLOWED_ORIGINS=http://localhost:3000
 
 - Python 3.11+
 - Node.js 18+
-- PostgreSQL
-
-## Installation
-
-1. Clone the repository:
-```bash
-git clone https://github.com/yourusername/myMarketProject.git
-cd myMarketProject
-```
-
-2. Set up the backend:
-```bash
-# Create and activate virtual environment
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-
-# Install dependencies
-pip install -r requirements.txt
-
-# Set up environment variables
-cp .env.example .env
-# Edit .env with your configuration
-
-# Run migrations
-cd marketplace
-python manage.py migrate
-
-# Start the development server
-python manage.py runserver
-```
-
-3. Set up the frontend:
-```bash
-cd frontend
-
-# Install dependencies
-npm install
-
-# Start the development server
-npm start
-```
+- PostgreSQL (optional, SQLite is used by default)
 
 
 
