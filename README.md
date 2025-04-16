@@ -1,47 +1,34 @@
-# MyMarket Project
 
-A marketplace application built with Django REST Framework and React.
+# Marketplace Backend
 
-## Project Structure
-```
-myMarketProject/
-├── marketplace/     # Django backend
-└── frontend/       # React frontend
-```
+This is the backend for the Marketplace application, built with Django and Django REST Framework.
 
-## Quick Start Guide
+## Local Development
 
-### Step 1: Clone the Repository
-```powershell
-git clone https://github.com/yourusername/myMarketProject.git
-cd myMarketProject
-```
+EASY:
+cd marketplace; python manage.py runserver
+cd frontend; npm start
 
-### Step 2: Set Up the Backend
+Backend server at http://127.0.0.1:8000/
+or /admin at end
+Frontend server at http://localhost:3000
 
-1. Create and activate a virtual environment:
-```powershell
-# Create virtual environment
+1. Create a virtual environment:
+```bash
 python -m venv venv
-
-# Activate virtual environment (Windows PowerShell)
-.\venv\Scripts\Activate
+source venv/bin/activate  # On Windows: venv\Scripts\activate
 ```
 
-2. Install backend dependencies:
-```powershell
-# Navigate to the marketplace directory
-cd marketplace
-
-# Install dependencies
+2. Install dependencies:
+```bash
 pip install -r requirements.txt
 ```
 
 3. Set up environment variables:
-```powershell
-# Create a .env file in the marketplace directory with:
+Create a `.env` file with the following variables:
+```env
 DEBUG=True
-DJANGO_SECRET_KEY=your-secret-key
+DJANGO_SECRET_KEY=your_secret_key_here
 ALLOWED_HOSTS=localhost,127.0.0.1
 CORS_ALLOWED_ORIGINS=http://localhost:3000
 DATABASE_URL=sqlite:///db.sqlite3
@@ -49,213 +36,38 @@ STATIC_ROOT=staticfiles
 MEDIA_ROOT=media
 ```
 
-4. Run database migrations:
-```powershell
-# Make sure you're in the marketplace directory
+4. Run migrations:
+```bash
 python manage.py migrate
 ```
 
-5. Start the Django development server:
-```powershell
-# In PowerShell, use semicolon instead of &&
+5. Create a superuser:
+```bash
+python manage.py createsuperuser
+```
+
+6. Run the development server:
+```bash
 python manage.py runserver
 ```
 
-The backend API will be available at `http://localhost:8000`
-
-### Step 3: Set Up the Frontend
-
-1. Open a new terminal window (keep the backend server running)
-
-2. Navigate to the frontend directory:
-```powershell
-# From the project root
-cd frontend
-```
-
-3. Install frontend dependencies:
-```powershell
+FOR FRONT END
 npm install
-```
-
-4. Start the React development server:
-```powershell
 npm start
-```
 
-The frontend will be available at `http://localhost:3000`
-
-## Detailed Setup Instructions
-
-### Backend Setup
-
-1. Create and activate a virtual environment:
-```powershell
-# Create virtual environment
-python -m venv venv
-
-# Activate virtual environment (Windows PowerShell)
-.\venv\Scripts\Activate
-```
-
-2. Install backend dependencies:
-```powershell
-# First, make sure you're in the project root
-cd marketplace
-pip install -r requirements.txt
-```
-
-3. Set up environment variables:
-```powershell
-# Create a .env file in the marketplace directory with:
-DEBUG=True
-DJANGO_SECRET_KEY=your-secret-key
-ALLOWED_HOSTS=localhost,127.0.0.1
-CORS_ALLOWED_ORIGINS=http://localhost:3000
-DATABASE_URL=sqlite:///db.sqlite3
-STATIC_ROOT=staticfiles
-MEDIA_ROOT=media
-```
-
-4. Run database migrations:
-```powershell
-# Make sure you're in the marketplace directory
-python manage.py migrate
-```
-
-5. Start the Django development server:
-```powershell
-# In PowerShell, use semicolon instead of &&
-python manage.py runserver
-```
-
-The backend API will be available at:
-- Main Application: `http://localhost:3000` (React frontend)
-- API Root: `http://localhost:8000/api/`
-- Admin Interface: `http://localhost:8000/admin/`
-- API Documentation: `http://localhost:8000/swagger/`
-
-### Frontend Setup
-
-1. Open a new terminal window (keep the backend server running)
-
-2. Navigate to the frontend directory:
-```powershell
-# From the project root
-cd frontend
-```
-
-3. Install frontend dependencies:
-```powershell
-npm install
-```
-
-4. Start the React development server:
-```powershell
-npm start
-```
-
-The frontend will be available at `http://localhost:3000`
-
-## Important URLs
-
-- Main Application (Frontend): `http://localhost:3000`
-  - This is where you should access the application as a user
-  - The frontend will automatically communicate with the backend API
-
-- Backend API Endpoints:
-  - API Root: `http://localhost:8000/api/`
-  - Admin Interface: `http://localhost:8000/admin/`
-  - API Documentation: `http://localhost:8000/swagger/`
-  - JWT Token: `http://localhost:8000/api/token/`
-
-## Development Tips
-
-- Keep both servers running in separate terminal windows:
-  - Terminal 1: Django backend server (port 8000)
-  - Terminal 2: React frontend server (port 3000)
-
-- PowerShell Command Tips:
-  - Use semicolon (`;`) instead of `&&` to chain commands
-  - Always run Django commands from the `marketplace` directory
-  - Always run npm commands from the `frontend` directory
-
-- If port 3000 is already in use:
-  - React will automatically prompt to use a different port
-  - Type 'y' to accept the alternative port
-
-## Troubleshooting
-
-1. If you see "No module named 'marketplace.settings'":
-   - Make sure you're in the `marketplace` directory
-   - Set the Python path: `$env:PYTHONPATH = "."`
-
-2. If you see a 404 at `http://localhost:8000`:
-   - This is normal - use `http://localhost:3000` instead
-   - The root URL will redirect to the API documentation
-   - The main application is served by React at port 3000
-
-3. If npm commands fail:
-   - Make sure you're in the `frontend` directory
-   - Check that Node.js is installed
-   - Try deleting `node_modules` and running `npm install` again
-
-4. If you see "only supports http" error:
-   - Make sure you're using the latest code with our security settings updates
-   - Check that both servers are running (Django on port 8000, React on port 3000)
-   - Try clearing your browser cache or using a different browser
 
 ## API Documentation
 
-The API documentation is available at:
-- Swagger UI: `http://localhost:8000/swagger/`
-- ReDoc: `http://localhost:8000/redoc/`
+The API documentation is available at `/api/docs/` when running the server.
 
-## Environment Variables
+## Available Endpoints
 
-Create a `.env` file in the `marketplace` directory with the following variables:
-```
-DEBUG=True
-DJANGO_SECRET_KEY=your-secret-key
-ALLOWED_HOSTS=localhost,127.0.0.1
-CORS_ALLOWED_ORIGINS=http://localhost:3000
-DATABASE_URL=sqlite:///db.sqlite3
-STATIC_ROOT=staticfiles
-MEDIA_ROOT=media
-```
-
-## Features
-
-- User authentication with JWT tokens
-- User profile management with image upload
-- Product listing creation and management
-- Shopping cart functionality
-- Search and filter capabilities
-- Responsive design with Material-UI
-
-## Tech Stack
-
-### Backend
-- Django 5.2
-- Django REST Framework 3.14.0
-- PostgreSQL
-- JWT Authentication
-- Pillow for image processing
-- Whitenoise for static files
-- Gunicorn for production server
-
-### Frontend
-- React 18
-- Material-UI 5
-- Axios for API calls
-- React Router for navigation
-- Context API for state management
-
-## Prerequisites
-
-- Python 3.11+
-- Node.js 18+
-- PostgreSQL (optional, SQLite is used by default)
-
-
-
+- `/api/auth/register/` - User registration
+- `/api/auth/token/` - JWT token authentication
+- `/api/listings/` - Listings CRUD operations
+- `/api/user/profile/` - User profile management
+- `/api/listings/my-listings/` - User's listings
+- `/api/listings/popular/` - Popular listings
+- `/api/listings/recent/` - Recent listings
+- `/api/listings/active/` - Active listings
+- `/api/listings/price-range/` - Listings by price range 
