@@ -4,6 +4,14 @@ This is the backend for the Marketplace application, built with Django and Djang
 
 ## Local Development
 
+EASY:
+cd marketplace; python manage.py runserver
+cd frontend; npm start
+
+Backend server at http://127.0.0.1:8000/
+or /admin at end
+Frontend server at http://localhost:3000
+
 1. Create a virtual environment:
 ```bash
 python -m venv venv
@@ -17,17 +25,15 @@ pip install -r requirements.txt
 
 3. Set up environment variables:
 Create a `.env` file with the following variables:
-```
+```env
 DEBUG=True
-DJANGO_SECRET_KEY=bbayw9y78!xm*1vnlqx=mo75efs%_7v9pdu#c14kb-4s+xx0od
+DJANGO_SECRET_KEY=your_secret_key_here
 ALLOWED_HOSTS=localhost,127.0.0.1
 CORS_ALLOWED_ORIGINS=http://localhost:3000
 DATABASE_URL=sqlite:///db.sqlite3
 STATIC_ROOT=staticfiles
-MEDIA_ROOT=media 
+MEDIA_ROOT=media
 ```
-
-
 
 4. Run migrations:
 ```bash
@@ -43,6 +49,11 @@ python manage.py createsuperuser
 ```bash
 python manage.py runserver
 ```
+
+FOR FRONT END
+npm install
+npm start
+
 
 ## API Documentation
 
