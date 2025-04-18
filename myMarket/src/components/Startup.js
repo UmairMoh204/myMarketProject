@@ -1,7 +1,7 @@
 import React, { useRef, useState } from 'react';
-import './ItemSlider.css';
+import './Startup.css';
 
-function ItemSlider({ items }) {
+function Startup({ items }) {
   const containerRef = useRef(null);
   const [isDragging, setIsDragging] = useState(false);
   const [startX, setStartX] = useState(0);
@@ -34,16 +34,16 @@ function ItemSlider({ items }) {
 
   return (
     <div
-      className="item-container"
+      className="startup-container"
       ref={containerRef}
       onMouseDown={handleMouseDown}
       onMouseLeave={handleMouseLeave}
       onMouseUp={handleMouseUp}
       onMouseMove={handleMouseMove}
     >
-      <div className="item-track">
+      <div className="startup-track">
         {items.map((item) => (
-          <div key={item.id} className="item">
+          <div key={item.id} className="startup">
             <h2>{item.content}</h2>
           </div>
         ))}
@@ -52,4 +52,4 @@ function ItemSlider({ items }) {
   );
 }
 
-export default ItemSlider;
+export default Startup;

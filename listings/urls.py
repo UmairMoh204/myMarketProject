@@ -14,3 +14,4 @@ urlpatterns = [
     path('user-by-email/<str:email>/', views.get_user_by_email, name='user-by-email'),
     path('user/profile/', user_profile, name='user-profile'),
 ] 
+

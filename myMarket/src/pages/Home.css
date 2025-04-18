@@ -1,3 +1,11 @@
+
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  overflow-x: hidden; 
+}
+
 .Home {
   min-height: 100vh; 
   display: flex;
@@ -7,6 +15,7 @@
   background-color: white;
   color: black;
   padding: 20px;
+  box-sizing: border-box; 
 }
 
 .Home-logo {
@@ -49,7 +58,7 @@
   padding: 1rem;
   margin-top: 20px;
   justify-content: flex-end;
-  position: sticky; /* Keep the navigation bar at the top */
+  position: sticky; 
   top: 0;
   z-index: 1000;
   background-color: white;
@@ -81,17 +90,16 @@
     width: 90%;
     height: 500px;
     margin: 0 auto;
-    margin-bottom: 40px; /* Add spacing below the slider */
+    margin-bottom: 40px; 
 }
 
-.ItemSliderStyling {
+/* .ItemSliderStyling {
     width: 90%;
     height: 500px;
     margin: 0 auto;
-}
+} */
 
-.ItemSliderStyling .item-container {
-    max-width: 95%;
+/* .ItemSliderStyling .item-container {
     height: 300px;
     margin: 0 auto;
     border: 2px solid black;
@@ -101,7 +109,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-}
+} */
 
 .cart {
   width: 66%; 

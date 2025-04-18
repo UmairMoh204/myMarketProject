@@ -36,7 +36,7 @@ class CartItemSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = CartItem
-        fields = ['id', 'listing', 'listing_id', 'quantity', 'added_at', 'total_price']
+        fields = ['id', 'listing', 'listing_id', 'quantity', 'added_at', 'total_price', 'location']
         read_only_fields = ['added_at']
 
 class CartSerializer(serializers.ModelSerializer):
@@ -45,7 +45,7 @@ class CartSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Cart
-        fields = ['id', 'user', 'items', 'created_at', 'updated_at', 'total_price']
+        fields = ['id', 'user', 'items', 'created_at', 'updated_at', 'total_price', 'location']
         read_only_fields = ['user', 'created_at', 'updated_at']
 
 class UserProfileSerializer(serializers.ModelSerializer):
@@ -73,7 +73,7 @@ class ConversationSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Conversation
-        fields = ['id', 'participants', 'listing', 'created_at', 'updated_at', 'last_message', 'unread_count']
+        fields = ['id', 'participants', 'listing', 'created_at', 'updated_at', 'last_message', 'unread_count', 'location']
         read_only_fields = ['created_at', 'updated_at']
     
     def get_last_message(self, obj):

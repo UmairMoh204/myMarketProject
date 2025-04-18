@@ -69,7 +69,7 @@ const ListingDetail = () => {
       title: listing.title,
       description: listing.description,
       price: listing.price,
-      image: listing.image,
+      image: listing.image
     });
     setSnackbar({
       open: true,
@@ -153,6 +153,9 @@ const ListingDetail = () => {
           <Grid item xs={12} md={6}>
             <Typography variant="h4" component="h1" gutterBottom>
               {listing.title}
+            </Typography>
+            <Typography variant="h4" component="h1" gutterBottom>
+              {listing.location}
             </Typography>
             <Typography variant="h5" color="primary" gutterBottom>
               {formatPrice(listing.price)}
