@@ -28,7 +28,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'corsheaders',
     'django_filters',
-    'listings',
+    'listings',  # Using the original listings app
     'drf_yasg',
 ]
 

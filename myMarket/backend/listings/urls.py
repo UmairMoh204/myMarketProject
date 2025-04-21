@@ -2,6 +2,8 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from . import views
 from .views import user_profile
+from myMarket.backend.listings.views import user_profile  # Using the other listings app
+
 
 router = DefaultRouter()
 router.register(r'listings', views.ListingViewSet, basename='listing')

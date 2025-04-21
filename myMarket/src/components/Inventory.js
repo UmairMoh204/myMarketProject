@@ -4,8 +4,7 @@ import './Sidebar.css';
 function Inventory() {
     return (
       <div className='inventoryContainer'>
-        <h2>Inventory Placeholder</h2>
-        <p>This is a placeholder for the Sidebar component.</p>
+        <input type="text" placeholder="Search for items..." className='searchBar' />
       </div>
     );
   }

@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import './ItemSlider.css';
 
 function ItemSlider({ items }) {
@@ -6,6 +6,10 @@ function ItemSlider({ items }) {
   const [isDragging, setIsDragging] = useState(false);
   const [startX, setStartX] = useState(0);
   const [scrollLeft, setScrollLeft] = useState(0);
+
+  useEffect(() => {
+    console.log('ItemSlider received items:', items);
+  }, [items]);
 
   const handleMouseDown = (e) => {
     setIsDragging(true);
@@ -32,6 +36,11 @@ function ItemSlider({ items }) {
     containerRef.current.scrollLeft = scrollLeft - walk;
   };
 
+  if (!items || items.length === 0) {
+    console.log('No items to display in ItemSlider');
+    return <div className="item-container">No items available</div>;
+  }
+
   return (
     <div
       className="item-container"
@@ -42,11 +51,23 @@ function ItemSlider({ items }) {
       onMouseMove={handleMouseMove}
     >
       <div className="item-track">
-        {items.map((item) => (
-          <div key={item.id} className="item">
-            <h2>{item.content}</h2>
-          </div>
-        ))}
+        {items.map((item) => {
+          console.log('Rendering item:', item);
+          return (
+            <div key={item.id} className="item">
+              {item.image && (
+                <div className="item-image">
+                  <img src={item.image} alt={item.content} />
+                </div>
+              )}
+              <h2>{item.content}</h2>
+              {item.price && <p className="item-price">${item.price}</p>}
+              {item.category && <p className="item-category">Category: {item.category}</p>}
+              {item.condition && <p className="item-condition">Condition: {item.condition}</p>}
+              {item.seller && <p className="item-seller">Seller: {item.seller}</p>}
+            </div>
+          );
+        })}
       </div>
     </div>
   );
