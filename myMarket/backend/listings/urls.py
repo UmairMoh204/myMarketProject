@@ -2,7 +2,7 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from . import views
 from .views import user_profile
-from myMarket.backend.listings.views import user_profile  # Using the other listings app
+from listings.views import user_profile  # Corrected import path
 
 
 router = DefaultRouter()
@@ -17,4 +17,4 @@ urlpatterns = [
     path('api-root/', views.api_root, name='api-root'),
     path('register/', views.register_user, name='register'),
     path('user-profile/', views.user_profile, name='user-profile'),
-] 
+]
