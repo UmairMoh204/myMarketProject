@@ -1,0 +1,45 @@
+.Home-Nav {
+  display: flex;
+  padding: 1rem;
+  margin-top: 20px;
+  justify-content: flex-end;
+  position: sticky; 
+  top: 0;
+  z-index: 1000;
+  background-color: white;
+  border-bottom: 1px solid #ccc;
+}
+
+.Home-Nav ul {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  justify-content: center;
+}
+
+.Home-Nav li {
+  margin: 0 1rem;
+}
+
+.Home-Nav a {
+  color: rgb(0, 0, 0);
+  text-decoration: none;
+}
+
+.Home-Nav a:hover {
+  text-decoration: underline;
+}
+
+.logout-btn {
+  background: none;
+  border: none;
+  color: rgb(0, 0, 0);
+  text-decoration: none;
+  cursor: pointer;
+  font: inherit;
+}
+
+.logout-btn:hover {
+  text-decoration: underline;
+} 

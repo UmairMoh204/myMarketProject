@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import api from '../utils/auth';
+import { useAuth } from '../context/AuthContext';
+import Navigation from '../components/Navigation';
 import './Shop.css';
-import axios from 'axios';
-import { Link } from 'react-router-dom';
 
 function Shop() {
   const [listings, setListings] = useState([]);
@@ -9,76 +11,64 @@ function Shop() {
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
-  const [cartMessage, setCartMessage] = useState('');
+  const { isAuthenticated, isLoading: authLoading } = useAuth();
+  const navigate = useNavigate();
+
+  const fetchListings = async () => {
+    try {
+      console.log('Shop: Fetching listings...');
+      setLoading(true);
+      const response = await api.get('/listings/');
+      console.log('Shop: Listings API response:', response);
+      
+      if (response.data) {
+        console.log('Shop: Response data type:', typeof response.data);
+        console.log('Shop: Is array?', Array.isArray(response.data));
+        
+        if (Array.isArray(response.data)) {
+          setListings(response.data);
+        } else if (response.data.results && Array.isArray(response.data.results)) {
+          console.log('Shop: Using paginated results');
+          setListings(response.data.results);
+        } else {
+          console.log('Shop: Unexpected data format:', response.data);
+          setListings([]);
+        }
+      } else {
+        console.log('Shop: No data in response');
+        setListings([]);
+      }
+      
+      setError(null);
+    } catch (err) {
+      console.error('Shop: Error fetching listings:', err);
+      console.error('Shop: Error details:', err.response || err);
+      setError('Failed to fetch listings. Please try again later.');
+      setListings([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchListings = async () => {
-      try {
-        const token = localStorage.getItem('token');
-        
-        if (!token) {
-          setListings([]);
-          setLoading(false);
-          return;
-        }
-        
-        const response = await axios.get('http://localhost:8000/api/listings', {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        });
-        setListings(response.data);
-        setLoading(false);
-      } catch (err) {
-        console.error('Error fetching listings:', err);
-        setListings([]);
-        setLoading(false);
-      }
-    };
-
-    fetchListings();
-  }, []);
+    console.log('Shop: Auth state changed:', { isAuthenticated, authLoading });
+    if (!authLoading && isAuthenticated) {
+      fetchListings();
+    }
+  }, [isAuthenticated, authLoading]);
 
   const handleAddToCart = async (listingId) => {
+    if (!isAuthenticated) {
+      navigate('/signin');
+      return;
+    }
     try {
-      const token = localStorage.getItem('token');
-      
-      if (!token) {
-        setCartMessage('Please sign in to add items to cart');
-        setTimeout(() => setCartMessage(''), 3000);
-        return;
-      }
-      
-      // First get the user's cart
-      const cartResponse = await axios.get('http://localhost:8000/api/carts', {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-      
-      if (!cartResponse.data || cartResponse.data.length === 0) {
-        setCartMessage('Error: Cart not found');
-        setTimeout(() => setCartMessage(''), 3000);
-        return;
-      }
-      
-      const cartId = cartResponse.data[0].id;
-      await axios.post(
-        `http://localhost:8000/api/carts/${cartId}/add_item/`,
-        { listing_id: listingId },
-        {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        }
-      );
-      
-      setCartMessage('Item added to cart successfully!');
-      setTimeout(() => setCartMessage(''), 3000);
+      console.log('Shop: Adding to cart:', listingId);
+      await api.post('/cart/add/', { listing_id: listingId });
+      console.log('Shop: Successfully added to cart');
     } catch (err) {
-      console.error('Error adding to cart:', err);
-      setCartMessage('Failed to add item to cart');
-      setTimeout(() => setCartMessage(''), 3000);
+      console.error('Shop: Error adding to cart:', err);
+      console.error('Shop: Error details:', err.response || err);
     }
   };
 
@@ -88,73 +78,72 @@ function Shop() {
     return matchesSearch && matchesCategory;
   });
 
-  if (loading) return <div className="loading">Loading...</div>;
-  if (error) return <div className="error">{error}</div>;
+  const categories = ['all', ...new Set(listings.map(listing => listing.category))];
 
   return (
-    <div className="shop-container">
-      <div className="shop-header">
-        <h1>Shop</h1>
-        <div className="search-bar">
+    <div className="Shop">
+      <Navigation />
+      <div className="shop-container">
+        <div className="filters">
           <input
             type="text"
-            placeholder="Search products..."
+            placeholder="Search listings..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
+            className="search-input"
           />
-        </div>
-        <div className="category-filter">
           <select
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}
+            className="category-select"
           >
-            <option value="all">All Categories</option>
-            <option value="Electronics">Electronics</option>
-            <option value="Clothing">Clothing</option>
-            <option value="Books">Books</option>
-            <option value="Home">Home</option>
-            <option value="Sports">Sports</option>
-            <option value="Other">Other</option>
+            {categories.map(category => (
+              <option key={category} value={category}>
+                {category.charAt(0).toUpperCase() + category.slice(1)}
+              </option>
+            ))}
           </select>
         </div>
-      </div>
 
-      {cartMessage && (
-        <div className={`cart-message ${cartMessage.includes('Failed') ? 'error' : 'success'}`}>
-          {cartMessage}
-        </div>
-      )}
-
-      {listings.length === 0 ? (
-        <div className="no-listings-message">
-          <h2>No listings available</h2>
-          <p>Please sign in to view listings</p>
-          <Link to="/signin" className="signin-link">Sign In</Link>
-        </div>
-      ) : (
-        <div className="listings-grid">
-          {filteredListings.map(listing => (
-            <div key={listing.id} className="listing-card">
-              <img 
-                src={listing.image || 'https://via.placeholder.com/300x200?text=No+Image'} 
-                alt={listing.title} 
-              />
-              <div className="item-details">
-                <h3>{listing.title}</h3>
-                <p className="price">${listing.price}</p>
-                <p className="seller">Sold by: {listing.owner.username}</p>
-                <p className="condition">Condition: {listing.condition}</p>
-                <button 
-                  className="add-to-cart-btn"
-                  onClick={() => handleAddToCart(listing.id)}
-                >
-                  Add to Cart
-                </button>
+        {loading ? (
+          <p className="loading">Loading listings...</p>
+        ) : error ? (
+          <p className="error">{error}</p>
+        ) : filteredListings.length === 0 ? (
+          <p className="no-listings">
+            {!isAuthenticated ? (
+              'Please sign in to view listings.'
+            ) : searchTerm || selectedCategory !== 'all' ? (
+              'No listings match your search criteria.'
+            ) : (
+              'No listings available.'
+            )}
+          </p>
+        ) : (
+          <div className="listings-grid">
+            {filteredListings.map(listing => (
+              <div key={listing.id} className="listing-card">
+                <img
+                  src={listing.image || 'https://via.placeholder.com/150x150?text=No+Image'}
+                  alt={listing.title}
+                  className="listing-image"
+                />
+                <div className="listing-details">
+                  <h3>{listing.title}</h3>
+                  <p className="price">${listing.price}</p>
+                  <p className="category">{listing.category}</p>
+                  <button
+                    onClick={() => handleAddToCart(listing.id)}
+                    className="add-to-cart-btn"
+                  >
+                    Add to Cart
+                  </button>
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
-      )}
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
