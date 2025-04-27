@@ -26,3 +26,54 @@
   border: 2px solid rgb(0, 0, 0);
   box-sizing: border-box;
 }
+
+.listing-slide {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+.listing-image {
+  flex: 1;
+  height: 100%;
+  overflow: hidden;
+  border-radius: 8px;
+  margin-right: 20px;
+}
+
+.listing-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.listing-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 20px;
+  text-align: left;
+}
+
+.listing-info h3 {
+  font-size: 24px;
+  margin: 0 0 10px 0;
+  color: #333;
+}
+
+.listing-info .price {
+  font-size: 20px;
+  font-weight: bold;
+  color: #e94560;
+  margin: 0 0 10px 0;
+}
+
+.listing-info .condition,
+.listing-info .seller {
+  font-size: 16px;
+  color: #666;
+  margin: 5px 0;
+}

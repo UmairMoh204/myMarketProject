@@ -22,12 +22,13 @@ function Shop() {
           return;
         }
         
-        const response = await axios.get('http://localhost:8000/api/listings', {
+        const response = await axios.get('http://localhost:8000/api/listings/', {
           headers: {
             'Authorization': `Bearer ${token}`
           }
         });
-        setListings(response.data);
+        // Make sure we're getting the results array from the response
+        setListings(response.data.results || []);
         setLoading(false);
       } catch (err) {
         console.error('Error fetching listings:', err);
@@ -50,19 +51,30 @@ function Shop() {
       }
       
       // First get the user's cart
-      const cartResponse = await axios.get('http://localhost:8000/api/carts', {
+      const cartResponse = await axios.get('http://localhost:8000/api/carts/', {
         headers: {
           'Authorization': `Bearer ${token}`
         }
       });
       
-      if (!cartResponse.data || cartResponse.data.length === 0) {
-        setCartMessage('Error: Cart not found');
-        setTimeout(() => setCartMessage(''), 3000);
-        return;
+      let cartId;
+      if (!cartResponse.data || !cartResponse.data.results || cartResponse.data.results.length === 0) {
+        // Create a new cart if one doesn't exist
+        const createCartResponse = await axios.post(
+          'http://localhost:8000/api/carts/',
+          {},
+          {
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          }
+        );
+        cartId = createCartResponse.data.id;
+      } else {
+        cartId = cartResponse.data.results[0].id;
       }
       
-      const cartId = cartResponse.data[0].id;
+      // Add item to cart
       await axios.post(
         `http://localhost:8000/api/carts/${cartId}/add_item/`,
         { listing_id: listingId },
@@ -135,10 +147,13 @@ function Shop() {
         <div className="listings-grid">
           {filteredListings.map(listing => (
             <div key={listing.id} className="listing-card">
-              <img 
-                src={listing.image || 'https://via.placeholder.com/300x200?text=No+Image'} 
-                alt={listing.title} 
-              />
+              <div className="listing-image-container">
+                <img 
+                  src={listing.image || 'https://via.placeholder.com/300x200?text=No+Image'} 
+                  alt={listing.title}
+                  className="listing-image"
+                />
+              </div>
               <div className="item-details">
                 <h3>{listing.title}</h3>
                 <p className="price">${listing.price}</p>

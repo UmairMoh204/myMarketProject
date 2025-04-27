@@ -20,29 +20,24 @@ function Cart() {
           setLoading(false);
           return;
         }
-        const cartResponse = await axios.get('http://localhost:8000/api/carts', {
+        
+        const response = await axios.get('http://localhost:8000/api/carts/', {
           headers: {
             'Authorization': `Bearer ${token}`
           }
         });
         
-        if (!cartResponse.data || cartResponse.data.length === 0) {
+        // The cart is returned directly, not in a results array
+        const cart = response.data;
+        if (!cart || !cart.id) {
           setCartItems([]);
           setLoading(false);
           return;
         }
         
-        const userCart = cartResponse.data[0];
-        setCartId(userCart.id);
-        
-        const itemsResponse = await axios.get(`http://localhost:8000/api/carts/${userCart.id}/`, {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        });
-        
-        setCartItems(itemsResponse.data.items || []);
-        calculateTotal(itemsResponse.data.items || []);
+        setCartId(cart.id);
+        setCartItems(cart.items || []);
+        setTotal(cart.total_price || 0);
         setLoading(false);
       } catch (err) {
         console.error('Error fetching cart:', err);
@@ -78,14 +73,16 @@ function Cart() {
         }
       );
 
-      const itemsResponse = await axios.get(`http://localhost:8000/api/carts/${cartId}/`, {
+      // Refresh cart data
+      const response = await axios.get('http://localhost:8000/api/carts/', {
         headers: {
           'Authorization': `Bearer ${token}`
         }
       });
       
-      setCartItems(itemsResponse.data.items || []);
-      calculateTotal(itemsResponse.data.items || []);
+      const cart = response.data;
+      setCartItems(cart.items || []);
+      setTotal(cart.total_price || 0);
     } catch (err) {
       console.error('Error updating quantity:', err);
       setError('Failed to update quantity');
@@ -112,14 +109,15 @@ function Cart() {
       );
 
       // Refresh cart data
-      const itemsResponse = await axios.get(`http://localhost:8000/api/carts/${cartId}/`, {
+      const response = await axios.get('http://localhost:8000/api/carts/', {
         headers: {
           'Authorization': `Bearer ${token}`
         }
       });
       
-      setCartItems(itemsResponse.data.items || []);
-      calculateTotal(itemsResponse.data.items || []);
+      const cart = response.data;
+      setCartItems(cart.items || []);
+      setTotal(cart.total_price || 0);
     } catch (err) {
       console.error('Error removing item:', err);
       setError('Failed to remove item');

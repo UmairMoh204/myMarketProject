@@ -65,6 +65,12 @@ function ItemSlider({ items }) {
               {item.category && <p className="item-category">Category: {item.category}</p>}
               {item.condition && <p className="item-condition">Condition: {item.condition}</p>}
               {item.seller && <p className="item-seller">Seller: {item.seller}</p>}
+              <button 
+                className="add-to-cart-btn"
+                onClick={item.onAddToCart}
+              >
+                Add to Cart
+              </button>
             </div>
           );
         })}

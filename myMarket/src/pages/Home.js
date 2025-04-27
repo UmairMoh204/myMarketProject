@@ -14,6 +14,7 @@ function Home() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [cartMessage, setCartMessage] = useState('');
 
   // Function to handle login
   const handleLogin = async (username, password) => {
@@ -88,19 +89,81 @@ function Home() {
     fetchListings();
   }, []);
 
-  const slides = [
-    { id: 1, content: 'Slide 1' },
-    { id: 2, content: 'Slide 2' },
-    { id: 3, content: 'Slide 3' },
-    { id: 4, content: 'Slide 4' },
-    { id: 5, content: 'Slide 5' }
-  ];
+  const handleAddToCart = async (listingId) => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        setError('Please sign in to add items to cart');
+        return;
+      }
 
-  const featuredItems = listings.slice(0, listings.length).map(listing => ({
+      // First, get the user's cart
+      const cartResponse = await axios.get('http://localhost:8000/api/carts/', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      // The cart is returned directly, not in a results array
+      const cart = cartResponse.data;
+      if (!cart || !cart.id) {
+        setError('Failed to get cart');
+        return;
+      }
+
+      // Then add the item to the cart
+      const response = await axios.post(
+        `http://localhost:8000/api/carts/${cart.id}/add_item/`,
+        { listing_id: listingId, quantity: 1 },
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        }
+      );
+
+      if (response.status === 200) {
+        setCartMessage('Item added to cart!');
+        setTimeout(() => setCartMessage(''), 3000);
+      }
+    } catch (err) {
+      console.error('Error adding to cart:', err);
+      setError('Failed to add item to cart: ' + (err.response?.data?.detail || err.message));
+    }
+  };
+
+  const slides = listings.map(listing => ({
+    id: listing.id,
+    content: (
+      <div className="listing-slide">
+        <div className="listing-image">
+          <img 
+            src={listing.image || 'https://via.placeholder.com/800x400?text=No+Image'} 
+            alt={listing.title}
+          />
+        </div>
+        <div className="listing-info">
+          <h3>{listing.title}</h3>
+          <p className="price">${listing.price}</p>
+          <p className="condition">Condition: {listing.condition}</p>
+          <p className="seller">Sold by: {listing.owner.username}</p>
+          <button 
+            className="add-to-cart-btn"
+            onClick={() => handleAddToCart(listing.id)}
+          >
+            Add to Cart
+          </button>
+        </div>
+      </div>
+    )
+  }));
+
+  const featuredItems = listings.slice(0, 5).map(listing => ({
     id: listing.id,
     content: listing.title,
     price: listing.price,
-    image: listing.image
+    image: listing.image,
+    onAddToCart: () => handleAddToCart(listing.id)
   }));
 
   const newBrands = listings.slice(0, listings.length).map(listing => ({
@@ -132,6 +195,11 @@ function Home() {
   return (
     <Router>
       <div className="Home">
+        {cartMessage && (
+          <div className="cart-message">
+            {cartMessage}
+          </div>
+        )}
         <Navigation />
         <Routes>
           <Route
@@ -156,7 +224,8 @@ function Home() {
                       image: listing.image || 'https://via.placeholder.com/150x150?text=No+Image',
                       category: listing.category,
                       condition: listing.condition,
-                      seller: listing.owner.username
+                      seller: listing.owner.username,
+                      onAddToCart: () => handleAddToCart(listing.id)
                     }))} />
                   ) : (
                     <p style={{ textAlign: 'center', margin: '20px' }}>No listings available.</p>

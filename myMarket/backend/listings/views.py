@@ -129,7 +129,18 @@ class CartViewSet(BaseModelViewSet):
         return Cart.objects.filter(user=self.request.user)
     
     def get_or_create_object(self):
-        return Cart.objects.get_or_create(user=self.request.user)[0]
+        cart, created = Cart.objects.get_or_create(user=self.request.user)
+        return cart
+    
+    def list(self, request, *args, **kwargs):
+        cart = self.get_or_create_object()
+        serializer = self.get_serializer(cart)
+        return Response(serializer.data)
+    
+    def create(self, request, *args, **kwargs):
+        cart = self.get_or_create_object()
+        serializer = self.get_serializer(cart)
+        return Response(serializer.data, status=status.HTTP_200_OK)
     
     @action(detail=True, methods=['post'])
     def add_item(self, request, pk=None):
@@ -151,7 +162,10 @@ class CartViewSet(BaseModelViewSet):
             cart_item.quantity += quantity
             cart_item.save()
         
-        return Response(CartItemSerializer(cart_item).data, status=status.HTTP_200_OK)
+        # Refresh the cart to get updated items
+        cart.refresh_from_db()
+        serializer = self.get_serializer(cart)
+        return Response(serializer.data, status=status.HTTP_200_OK)
     
     @action(detail=True, methods=['post'])
     def remove_item(self, request, pk=None):

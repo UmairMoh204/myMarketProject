@@ -36,17 +36,25 @@ class CartItemSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = CartItem
-        fields = ['id', 'listing', 'listing_id', 'quantity', 'added_at', 'total_price', 'location']
-        read_only_fields = ['added_at']
+        fields = ['id', 'listing', 'listing_id', 'quantity', 'created_at', 'total_price']
+        read_only_fields = ['created_at']
 
 class CartSerializer(serializers.ModelSerializer):
     items = CartItemSerializer(many=True, read_only=True)
-    total_price = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
+    total_price = serializers.SerializerMethodField()
     
     class Meta:
         model = Cart
-        fields = ['id', 'user', 'items', 'created_at', 'updated_at', 'total_price', 'location']
+        fields = ['id', 'user', 'items', 'created_at', 'updated_at', 'total_price']
         read_only_fields = ['user', 'created_at', 'updated_at']
+
+    def get_total_price(self, obj):
+        return sum(item.quantity * item.listing.price for item in obj.items.all())
+
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        representation['items'] = CartItemSerializer(instance.items.all(), many=True).data
+        return representation
 
 class UserProfileSerializer(serializers.ModelSerializer):
     username = serializers.CharField(source='user.username', read_only=True)
