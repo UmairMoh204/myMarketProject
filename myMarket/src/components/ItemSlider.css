@@ -63,7 +63,7 @@
 .item-price {
   font-size: 18px;
   font-weight: bold;
-  color: #e94560;
+  color: #2c5282;
   margin: 5px 0;
 }
 
@@ -82,4 +82,22 @@
   transform: scale(1.05);
   transition: transform 0.2s ease-in-out;
   box-shadow: 0 6px 10px rgba(0, 0, 0, 0.15);
+}
+
+/* Buy button styling */
+.buy-button {
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  margin-top: 10px;
+  transition: background-color 0.2s;
+  width: 80%;
+}
+
+.buy-button:hover {
+  background-color: #45a049;
 }

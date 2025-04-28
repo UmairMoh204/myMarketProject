@@ -65,6 +65,7 @@ function Shop() {
     try {
       console.log('Shop: Adding to cart:', listingId);
       await api.post('/cart/add/', { listing_id: listingId });
+      window.incrementCartCount();
       console.log('Shop: Successfully added to cart');
     } catch (err) {
       console.error('Shop: Error adding to cart:', err);
@@ -131,7 +132,9 @@ function Shop() {
                 <div className="listing-details">
                   <h3>{listing.title}</h3>
                   <p className="price">${listing.price}</p>
-                  <p className="category">{listing.category}</p>
+                  {listing.category && <p className="category">Category: {listing.category}</p>}
+                  {listing.condition && <p className="condition">Condition: {listing.condition}</p>}
+                  {listing.owner && <p className="seller">Seller: {listing.owner.username}</p>}
                   <button
                     onClick={() => handleAddToCart(listing.id)}
                     className="add-to-cart-btn"

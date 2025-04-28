@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import './Home.css';
 import Slider from '../components/Slider';
 import ItemSlider from '../components/ItemSlider';
-import { Routes, Route, Link } from 'react-router-dom';
+import { Routes, Route, Link, useNavigate } from 'react-router-dom';
 import Shop from './Shop';
 import Cart from './Cart';
 import Signin from './Signin';
@@ -15,6 +15,7 @@ function Home() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const { isAuthenticated, isLoading: authLoading } = useAuth();
+  const navigate = useNavigate();
 
   const fetchListings = async () => {
     try {
@@ -30,7 +31,6 @@ function Home() {
         if (Array.isArray(response.data)) {
           setListings(response.data);
         } else if (response.data.results && Array.isArray(response.data.results)) {
-          // Handle paginated response
           console.log('Using paginated results');
           setListings(response.data.results);
         } else {
@@ -60,12 +60,67 @@ function Home() {
     }
   }, [isAuthenticated, authLoading]);
 
+  const handleBuyItem = async (listingId) => {
+    if (!isAuthenticated) {
+      navigate('/signin');
+      return;
+    }
+    
+    try {
+      console.log('Adding to cart:', listingId);
+      
+      const cartResponse = await api.get('/carts/');
+      console.log('Cart response:', cartResponse);
+      
+      if (!cartResponse.data || !Array.isArray(cartResponse.data) || cartResponse.data.length === 0) {
+        throw new Error('Failed to get or create cart');
+      }
+      
+      const cart = cartResponse.data[0];
+      console.log('Using cart:', cart);
+      
+      const addResponse = await api.post(`/carts/${cart.id}/add_item/`, { 
+        listing_id: listingId,
+        quantity: 1
+      });
+      console.log('Add to cart response:', addResponse);
+      
+      // Increment the cart count
+      window.incrementCartCount();
+      
+      console.log('Successfully added to cart');
+      navigate('/cart');
+    } catch (err) {
+      console.error('Error adding to cart:', err);
+      console.error('Error details:', err.response || err);
+      if (err.response) {
+        console.error('Response status:', err.response.status);
+        console.error('Response data:', err.response.data);
+      }
+    }
+  };
+
   const slides = [
-    { id: 1, content: 'Slide 1' },
-    { id: 2, content: 'Slide 2' },
-    { id: 3, content: 'Slide 3' },
-    { id: 4, content: 'Slide 4' },
-    { id: 5, content: 'Slide 5' }
+    { 
+      id: 1, 
+      image: 'https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?q=80&w=1000&auto=format&fit=crop',
+    },
+    { 
+      id: 2, 
+      image: 'https://images.unsplash.com/photo-1607082350899-7e105aa886ae?q=80&w=1000&auto=format&fit=crop',
+    },
+    { 
+      id: 3, 
+      image: 'https://images.unsplash.com/photo-1607082350899-7e105aa886ae?q=80&w=1000&auto=format&fit=crop',
+    },
+    { 
+      id: 4, 
+      image: 'https://images.unsplash.com/photo-1607082350899-7e105aa886ae?q=80&w=1000&auto=format&fit=crop',
+    },
+    { 
+      id: 5, 
+      image: 'https://images.unsplash.com/photo-1607082350899-7e105aa886ae?q=80&w=1000&auto=format&fit=crop',
+    }
   ];
 
   const featuredItems = Array.isArray(listings) ? listings.slice(0, listings.length).map(listing => ({
@@ -107,15 +162,18 @@ function Home() {
                   ) : error ? (
                     <p style={{ textAlign: 'center', margin: '20px', color: 'red' }}>{error}</p>
                   ) : listings.length > 0 ? (
-                    <ItemSlider items={listings.map(listing => ({
-                      id: listing.id,
-                      content: listing.title,
-                      price: listing.price,
-                      image: listing.image || 'https://via.placeholder.com/150x150?text=No+Image',
-                      category: listing.category,
-                      condition: listing.condition,
-                      seller: listing.owner?.username || 'Unknown'
-                    }))} />
+                    <ItemSlider 
+                      items={listings.map(listing => ({
+                        id: listing.id,
+                        content: listing.title,
+                        price: listing.price,
+                        image: listing.image || 'https://via.placeholder.com/150x150?text=No+Image',
+                        category: listing.category,
+                        condition: listing.condition,
+                        seller: listing.owner?.username || 'Unknown'
+                      }))} 
+                      onBuyClick={handleBuyItem}
+                    />
                   ) : (
                     <p style={{ textAlign: 'center', margin: '20px' }}>No listings available.</p>
                   )}

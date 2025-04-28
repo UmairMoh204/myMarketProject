@@ -1,7 +1,7 @@
 import React, { useRef, useState, useEffect } from 'react';
 import './ItemSlider.css';
 
-function ItemSlider({ items }) {
+function ItemSlider({ items, onBuyClick }) {
   const containerRef = useRef(null);
   const [isDragging, setIsDragging] = useState(false);
   const [startX, setStartX] = useState(0);
@@ -36,6 +36,14 @@ function ItemSlider({ items }) {
     containerRef.current.scrollLeft = scrollLeft - walk;
   };
 
+  const handleBuyClick = (itemId) => {
+    if (onBuyClick) {
+      onBuyClick(itemId);
+    } else {
+      console.log('Buy button clicked for item:', itemId);
+    }
+  };
+
   if (!items || items.length === 0) {
     console.log('No items to display in ItemSlider');
     return <div className="item-container">No items available</div>;
@@ -65,6 +73,12 @@ function ItemSlider({ items }) {
               {item.category && <p className="item-category">Category: {item.category}</p>}
               {item.condition && <p className="item-condition">Condition: {item.condition}</p>}
               {item.seller && <p className="item-seller">Seller: {item.seller}</p>}
+              <button 
+                className="buy-button"
+                onClick={() => handleBuyClick(item.id)}
+              >
+                Buy Now
+              </button>
             </div>
           );
         })}

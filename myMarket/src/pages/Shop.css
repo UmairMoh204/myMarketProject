@@ -70,43 +70,68 @@
 
 .listings-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  grid-template-columns: repeat(3, 1fr);
   gap: 20px;
   padding: 20px 0;
+}
+
+@media (max-width: 992px) {
+  .listings-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 576px) {
+  .listings-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .listing-card {
   background: white;
   border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   overflow: hidden;
-  transition: transform 0.2s;
+  transition: transform 0.2s ease-in-out;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  text-align: center;
+  padding: 10px;
+  height: 300px;
+  width: 300px;
 }
 
 .listing-card:hover {
-  transform: translateY(-5px);
+  transform: scale(1.05);
+  box-shadow: 0 6px 10px rgba(0, 0, 0, 0.15);
 }
 
 .listing-image {
   width: 100%;
-  height: 200px;
+  height: 150px;
   object-fit: cover;
+  border-radius: 4px;
+  margin-bottom: 10px;
 }
 
 .listing-details {
-  padding: 15px;
+  padding: 0;
+  width: 100%;
 }
 
 .listing-details h3 {
   margin: 0 0 10px 0;
   font-size: 16px;
+  font-weight: bold;
   color: #333;
 }
 
 .price {
   font-size: 18px;
   font-weight: bold;
-  color: #2c5282;
+  color: #000000;
   margin: 5px 0;
 }
 
@@ -132,6 +157,7 @@
   font-size: 14px;
   margin-top: 10px;
   transition: background-color 0.2s;
+  width: 80%;
 }
 
 .add-to-cart-btn:hover {
