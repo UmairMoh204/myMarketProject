@@ -101,19 +101,34 @@ function Home() {
   };
 
   const slides = [
-    { id: 1, content: 'Slide 1' },
-    { id: 2, content: 'Slide 2' },
-    { id: 3, content: 'Slide 3' },
-    { id: 4, content: 'Slide 4' },
-    { id: 5, content: 'Slide 5' }
+    { 
+      id: 1, 
+      image: 'https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?q=80&w=1000&auto=format&fit=crop',
+    },
+    { 
+      id: 2, 
+      image: 'https://images.unsplash.com/photo-1607082350899-7e105aa886ae?q=80&w=1000&auto=format&fit=crop',
+    },
+    { 
+      id: 3, 
+      image: 'https://images.unsplash.com/photo-1607082350899-7e105aa886ae?q=80&w=1000&auto=format&fit=crop',
+    },
+    { 
+      id: 4, 
+      image: 'https://images.unsplash.com/photo-1607082350899-7e105aa886ae?q=80&w=1000&auto=format&fit=crop',
+    },
+    { 
+      id: 5, 
+      image: 'https://images.unsplash.com/photo-1607082350899-7e105aa886ae?q=80&w=1000&auto=format&fit=crop',
+    }
   ];
 
-  const featuredItems = listings.slice(0, listings.length).map(listing => ({
+  const featuredItems = Array.isArray(listings) ? listings.slice(0, listings.length).map(listing => ({
     id: listing.id,
     content: listing.title,
     price: listing.price,
     image: listing.image
-  }));
+  })) : [];
 
   const newBrands = Array.isArray(listings) ? listings.slice(0, listings.length).map(listing => ({
     id: listing.id,
@@ -126,9 +141,9 @@ function Home() {
   }
 
   return (
-    <Router>
-      <div className="Home">
-        <Navigation />
+    <div className="Home">
+      <Navigation />
+      <div className="content-container">
         <Routes>
           <Route
             path="/"
@@ -147,15 +162,18 @@ function Home() {
                   ) : error ? (
                     <p style={{ textAlign: 'center', margin: '20px', color: 'red' }}>{error}</p>
                   ) : listings.length > 0 ? (
-                    <ItemSlider items={listings.map(listing => ({
-                      id: listing.id,
-                      content: listing.title,
-                      price: listing.price,
-                      image: listing.image || 'https://via.placeholder.com/150x150?text=No+Image',
-                      category: listing.category,
-                      condition: listing.condition,
-                      seller: listing.owner.username
-                    }))} />
+                    <ItemSlider 
+                      items={listings.map(listing => ({
+                        id: listing.id,
+                        content: listing.title,
+                        price: listing.price,
+                        image: listing.image || 'https://via.placeholder.com/150x150?text=No+Image',
+                        category: listing.category,
+                        condition: listing.condition,
+                        seller: listing.owner?.username || 'Unknown'
+                      }))} 
+                      onBuyClick={handleBuyItem}
+                    />
                   ) : (
                     <p style={{ textAlign: 'center', margin: '20px' }}>No listings available.</p>
                   )}
