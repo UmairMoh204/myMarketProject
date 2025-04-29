@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import './Cart.css';
-import axios from 'axios';
+import api from '../utils/auth';
+import { isAuthenticated } from '../utils/auth';
 import { Link } from 'react-router-dom';
+import Navigation from '../components/Navigation';
 
 function Cart() {
   const [cartItems, setCartItems] = useState([]);
@@ -13,9 +15,7 @@ function Cart() {
   useEffect(() => {
     const fetchCart = async () => {
       try {
-        const token = localStorage.getItem('token');
-        
-        if (!token) {
+        if (!isAuthenticated()) {
           setCartItems([]);
           setLoading(false);
           return;
@@ -35,9 +35,17 @@ function Cart() {
           return;
         }
         
-        setCartId(cart.id);
-        setCartItems(cart.items || []);
-        setTotal(cart.total_price || 0);
+        const userCart = cartResponse.data[0];
+        setCartId(userCart.id);
+        
+        const itemsResponse = await axios.get(`http://localhost:8000/api/carts/${userCart.id}/`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        
+        setCartItems(itemsResponse.data.items || []);
+        calculateTotal(itemsResponse.data.items || []);
         setLoading(false);
       } catch (err) {
         console.error('Error fetching cart:', err);
@@ -50,31 +58,25 @@ function Cart() {
   }, []);
 
   const calculateTotal = (items) => {
-    const sum = items.reduce((acc, item) => acc + (item.total_price || 0), 0);
+    const sum = items.reduce((acc, item) => {
+      return acc + (item.listing.price * item.quantity);
+    }, 0);
     setTotal(sum);
   };
 
   const handleUpdateQuantity = async (itemId, newQuantity) => {
     try {
-      const token = localStorage.getItem('token');
-      
-      if (!token) {
+      if (!isAuthenticated()) {
         setError('Please sign in to update cart');
         return;
       }
 
-      await axios.post(
-        `http://localhost:8000/api/carts/${cartId}/update_quantity/`,
-        { listing_id: itemId, quantity: newQuantity },
-        {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        }
+      await api.post(
+        `/carts/${cartId}/update_quantity/`,
+        { listing_id: itemId, quantity: newQuantity }
       );
 
-      // Refresh cart data
-      const response = await axios.get('http://localhost:8000/api/carts/', {
+      const itemsResponse = await axios.get(`http://localhost:8000/api/carts/${cartId}/`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -91,25 +93,18 @@ function Cart() {
 
   const handleRemoveItem = async (itemId) => {
     try {
-      const token = localStorage.getItem('token');
-      
-      if (!token) {
+      if (!isAuthenticated()) {
         setError('Please sign in to remove items');
         return;
       }
 
-      await axios.post(
-        `http://localhost:8000/api/carts/${cartId}/remove_item/`,
-        { listing_id: itemId },
-        {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        }
+      await api.post(
+        `/carts/${cartId}/remove_item/`,
+        { listing_id: itemId }
       );
 
       // Refresh cart data
-      const response = await axios.get('http://localhost:8000/api/carts/', {
+      const itemsResponse = await axios.get(`http://localhost:8000/api/carts/${cartId}/`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -128,14 +123,20 @@ function Cart() {
   if (error) return <div className="error">{error}</div>;
 
   return (
+    <div className="Cart">
+      <Navigation />
     <div className="cart-container">
       <h1>Your Cart</h1>
       
-      {cartItems.length === 0 ? (
+      {!isAuthenticated() ? (
+        <div className="auth-message">
+          <p>Please sign in to view your cart</p>
+          <Link to="/signin" className="signin-link">Sign In</Link>
+        </div>
+      ) : cartItems.length === 0 ? (
         <div className="empty-cart">
-          <h2>Your cart is empty</h2>
-          <p>Browse our products and add items to your cart</p>
-          <Link to="/shop" className="continue-shopping">Continue Shopping</Link>
+          <p>Your cart is empty</p>
+          <Link to="/shop" className="shop-link">Continue Shopping</Link>
         </div>
       ) : (
         <>
@@ -143,29 +144,30 @@ function Cart() {
             {cartItems.map(item => (
               <div key={item.id} className="cart-item">
                 <img 
-                  src={item.listing.image || 'https://via.placeholder.com/300x200?text=No+Image'} 
+                  src={item.listing.image || 'https://via.placeholder.com/100x100?text=No+Image'} 
                   alt={item.listing.title} 
-                  className="item-image" 
                 />
                 <div className="item-details">
                   <h3>{item.listing.title}</h3>
                   <p className="price">${item.listing.price}</p>
                   <p className="seller">Sold by: {item.listing.owner.username}</p>
-                  <div className="quantity-controls">
-                    <button 
-                      onClick={() => handleUpdateQuantity(item.listing.id, Math.max(0, item.quantity - 1))}
-                      disabled={item.quantity <= 1}
-                    >
-                      -
-                    </button>
-                    <span>{item.quantity}</span>
-                    <button 
-                      onClick={() => handleUpdateQuantity(item.listing.id, item.quantity + 1)}
-                    >
-                      +
-                    </button>
-                  </div>
-                  <p className="item-total">Total: ${item.total_price}</p>
+                </div>
+                <div className="quantity-controls">
+                  <button 
+                    onClick={() => handleUpdateQuantity(item.listing.id, Math.max(1, item.quantity - 1))}
+                    disabled={item.quantity <= 1}
+                  >
+                    -
+                  </button>
+                  <span>{item.quantity}</span>
+                  <button 
+                    onClick={() => handleUpdateQuantity(item.listing.id, item.quantity + 1)}
+                  >
+                    +
+                  </button>
+                </div>
+                <div className="item-total">
+                  <p>${(item.listing.price * item.quantity).toFixed(2)}</p>
                 </div>
                 <button 
                   className="remove-btn"
@@ -191,12 +193,11 @@ function Cart() {
               <span>Total:</span>
               <span>${total.toFixed(2)}</span>
             </div>
-            <button className="checkout-btn">
-              Proceed to Checkout
-            </button>
+            <button className="checkout-btn">Proceed to Checkout</button>
           </div>
         </>
       )}
+    </div>
     </div>
   );
 }

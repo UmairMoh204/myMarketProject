@@ -22,19 +22,115 @@ from rest_framework.exceptions import ValidationError
 def register_user(request):
     if not request.data:
         return Response({'error': 'No data provided'}, status=status.HTTP_400_BAD_REQUEST)
+    
+    # Validate password strength
+    password = request.data.get('password', '')
+    if len(password) < 8:
+        return Response({'error': 'Password must be at least 8 characters long'}, status=status.HTTP_400_BAD_REQUEST)
+    
+    # Check if username already exists
+    if User.objects.filter(username=request.data.get('username')).exists():
+        return Response({'error': 'Username already exists'}, status=status.HTTP_400_BAD_REQUEST)
+    
+    # Check if email already exists
+    if User.objects.filter(email=request.data.get('email')).exists():
+        return Response({'error': 'Email already exists'}, status=status.HTTP_400_BAD_REQUEST)
         
     serializer = UserSerializer(data=request.data)
     if serializer.is_valid():
         try:
+            # Create user with is_active=True immediately (no email verification needed)
             user = User.objects.create_user(
                 username=serializer.validated_data['username'],
                 email=serializer.validated_data.get('email', ''),
-                password=request.data.get('password', '')
+                password=request.data.get('password', ''),
+                is_active=True  # User is active immediately
             )
-            return Response(UserSerializer(user).data, status=status.HTTP_201_CREATED)
+            
+            # Create user profile
+            UserProfile.objects.create(user=user)
+            
+            return Response({
+                'message': 'Registration successful. You can now log in.',
+                'user': UserSerializer(user).data
+            }, status=status.HTTP_201_CREATED)
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['GET'])
+@permission_classes([permissions.AllowAny])
+def verify_email(request, uidb64, token):
+    try:
+        from django.utils.http import urlsafe_base64_decode
+        from django.contrib.auth.tokens import default_token_generator
+        
+        uid = urlsafe_base64_decode(uidb64).decode()
+        user = User.objects.get(pk=uid)
+        
+        if default_token_generator.check_token(user, token):
+            user.is_active = True
+            user.save()
+            return Response({'message': 'Email verified successfully'}, status=status.HTTP_200_OK)
+        else:
+            return Response({'error': 'Invalid verification link'}, status=status.HTTP_400_BAD_REQUEST)
+    except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+        return Response({'error': 'Invalid verification link'}, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['POST'])
+@permission_classes([permissions.AllowAny])
+def request_password_reset(request):
+    email = request.data.get('email')
+    if not email:
+        return Response({'error': 'Email is required'}, status=status.HTTP_400_BAD_REQUEST)
+    
+    try:
+        user = User.objects.get(email=email)
+        from django.contrib.auth.tokens import default_token_generator
+        from django.utils.http import urlsafe_base64_encode
+        from django.utils.encoding import force_bytes
+        from django.core.mail import send_mail
+        from django.conf import settings
+        
+        token = default_token_generator.make_token(user)
+        uid = urlsafe_base64_encode(force_bytes(user.pk))
+        
+        reset_url = f"{settings.FRONTEND_URL}/reset-password/{uid}/{token}/"
+        send_mail(
+            'Password Reset',
+            f'Please click the following link to reset your password: {reset_url}',
+            settings.DEFAULT_FROM_EMAIL,
+            [user.email],
+            fail_silently=False,
+        )
+        
+        return Response({'message': 'Password reset email sent'}, status=status.HTTP_200_OK)
+    except User.DoesNotExist:
+        # Don't reveal that the email doesn't exist
+        return Response({'message': 'If an account exists with this email, a password reset link has been sent'}, status=status.HTTP_200_OK)
+
+@api_view(['POST'])
+@permission_classes([permissions.AllowAny])
+def reset_password(request, uidb64, token):
+    try:
+        from django.utils.http import urlsafe_base64_decode
+        from django.contrib.auth.tokens import default_token_generator
+        
+        uid = urlsafe_base64_decode(uidb64).decode()
+        user = User.objects.get(pk=uid)
+        
+        if default_token_generator.check_token(user, token):
+            new_password = request.data.get('new_password')
+            if not new_password or len(new_password) < 8:
+                return Response({'error': 'Password must be at least 8 characters long'}, status=status.HTTP_400_BAD_REQUEST)
+            
+            user.set_password(new_password)
+            user.save()
+            return Response({'message': 'Password reset successful'}, status=status.HTTP_200_OK)
+        else:
+            return Response({'error': 'Invalid reset link'}, status=status.HTTP_400_BAD_REQUEST)
+    except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+        return Response({'error': 'Invalid reset link'}, status=status.HTTP_400_BAD_REQUEST)
 
 class BaseModelViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
