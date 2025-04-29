@@ -15,32 +15,68 @@ function Cart() {
   useEffect(() => {
     const fetchCart = async () => {
       try {
+        console.log('Cart: Starting fetchCart');
         if (!isAuthenticated()) {
+          console.log('Cart: User not authenticated');
           setCartItems([]);
           setLoading(false);
           return;
         }
         
-        const response = await api.get('/carts');
+        console.log('Cart: User is authenticated, fetching cart');
+        const response = await api.get('/carts/');
+        console.log('Cart: API response:', response);
         
         if (response.data && response.data.length > 0) {
+          console.log('Cart: Found existing cart:', response.data[0]);
           setCartId(response.data[0].id);
-          setCartItems(response.data[0].items || []);
-          calculateTotal(response.data[0].items || []);
+          
+          if (response.data[0].items && Array.isArray(response.data[0].items)) {
+            console.log('Cart: Setting cart items:', response.data[0].items);
+            setCartItems(response.data[0].items);
+            calculateTotal(response.data[0].items);
+            
+            // Update the cart count in the Navigation component
+            if (window.updateCartCount) {
+              window.updateCartCount(response.data[0].items.length);
+            }
+          } else {
+            console.log('Cart: No items in cart');
+            setCartItems([]);
+            calculateTotal([]);
+            
+            // Update the cart count in the Navigation component
+            if (window.updateCartCount) {
+              window.updateCartCount(0);
+            }
+          }
         } else {
-          setCartItems([]);
+          console.log('Cart: No cart found, creating new cart');
+          const createCartResponse = await api.post('/carts/', {});
+          console.log('Cart: New cart created:', createCartResponse.data);
+          
+          if (createCartResponse.data && createCartResponse.data.id) {
+            setCartId(createCartResponse.data.id);
+            setCartItems([]);
+            calculateTotal([]);
+            
+            // Update the cart count in the Navigation component
+            if (window.updateCartCount) {
+              window.updateCartCount(0);
+            }
+          }
         }
-        
         setLoading(false);
       } catch (err) {
-        console.error('Error fetching cart:', err);
-        setCartItems([]);
+        console.error('Cart: Error fetching cart:', err);
+        console.error('Cart: Error details:', err.response || err);
+        setError('Failed to fetch cart');
         setLoading(false);
       }
     };
 
     fetchCart();
-  }, []);
+  }, []); // Empty dependency array means this runs once when component mounts
 
   const calculateTotal = (items) => {
     const sum = items.reduce((acc, item) => {
@@ -60,11 +96,18 @@ function Cart() {
         `/carts/${cartId}/update_quantity/`,
         { listing_id: itemId, quantity: newQuantity }
       );
-
-      const itemsResponse = await api.get(`/carts/${cartId}/`);
       
-      setCartItems(itemsResponse.data.items || []);
-      calculateTotal(itemsResponse.data.items || []);
+      // Refresh cart data
+      const itemsResponse = await api.get(`/carts/${cartId}/`);
+      console.log('Update quantity response:', itemsResponse);
+      
+      if (itemsResponse.data && itemsResponse.data.items) {
+        setCartItems(itemsResponse.data.items || []);
+        calculateTotal(itemsResponse.data.items || []);
+      } else {
+        setCartItems([]);
+        calculateTotal([]);
+      }
     } catch (err) {
       console.error('Error updating quantity:', err);
       setError('Failed to update quantity');
@@ -82,12 +125,18 @@ function Cart() {
         `/carts/${cartId}/remove_item/`,
         { listing_id: itemId }
       );
-
+      
       // Refresh cart data
       const itemsResponse = await api.get(`/carts/${cartId}/`);
+      console.log('Remove item response:', itemsResponse);
       
-      setCartItems(itemsResponse.data.items || []);
-      calculateTotal(itemsResponse.data.items || []);
+      if (itemsResponse.data && itemsResponse.data.items) {
+        setCartItems(itemsResponse.data.items || []);
+        calculateTotal(itemsResponse.data.items || []);
+      } else {
+        setCartItems([]);
+        calculateTotal([]);
+      }
     } catch (err) {
       console.error('Error removing item:', err);
       setError('Failed to remove item');

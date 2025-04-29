@@ -101,3 +101,30 @@
 .buy-button:hover {
   background-color: #45a049;
 }
+
+/* Add to cart button styling */
+.add-to-cart-btn {
+  background-color: #4299e1;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  margin-top: 10px;
+  transition: background-color 0.2s;
+  width: 80%;
+}
+
+.add-to-cart-btn:hover {
+  background-color: #2b6cb0;
+}
+
+/* Container for buttons */
+.item-buttons {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  margin-top: auto;
+}

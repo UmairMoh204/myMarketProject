@@ -1,7 +1,7 @@
 import React, { useRef, useState, useEffect } from 'react';
 import './ItemSlider.css';
 
-function ItemSlider({ items, onBuyClick }) {
+function ItemSlider({ items, onBuyClick, onAddToCart }) {
   const containerRef = useRef(null);
   const [isDragging, setIsDragging] = useState(false);
   const [startX, setStartX] = useState(0);
@@ -44,6 +44,14 @@ function ItemSlider({ items, onBuyClick }) {
     }
   };
 
+  const handleAddToCartClick = (itemId) => {
+    if (onAddToCart) {
+      onAddToCart(itemId);
+    } else {
+      console.log('Add to cart button clicked for item:', itemId);
+    }
+  };
+
   if (!items || items.length === 0) {
     console.log('No items to display in ItemSlider');
     return <div className="item-container">No items available</div>;
@@ -73,12 +81,14 @@ function ItemSlider({ items, onBuyClick }) {
               {item.category && <p className="item-category">Category: {item.category}</p>}
               {item.condition && <p className="item-condition">Condition: {item.condition}</p>}
               {item.seller && <p className="item-seller">Seller: {item.seller}</p>}
-              <button 
-                className="buy-button"
-                onClick={() => handleBuyClick(item.id)}
-              >
-                Buy Now
-              </button>
+              <div className="item-buttons">
+                <button 
+                  className="add-to-cart-btn"
+                  onClick={() => handleAddToCartClick(item.id)}
+                >
+                  Add to Cart
+                </button>
+              </div>
             </div>
           );
         })}

@@ -11,6 +11,7 @@ function Shop() {
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
+  const [successMessage, setSuccessMessage] = useState('');
   const { isAuthenticated, isLoading: authLoading } = useAuth();
   const navigate = useNavigate();
 
@@ -64,12 +65,69 @@ function Shop() {
     }
     try {
       console.log('Shop: Adding to cart:', listingId);
-      await api.post('/cart/add/', { listing_id: listingId });
+      
+      // First, try to get the user's cart
+      const cartResponse = await api.get('/carts/');
+      console.log('Shop: Cart response:', cartResponse);
+      
+      let cart;
+      
+      // If no cart exists, create one
+      if (!cartResponse.data || !Array.isArray(cartResponse.data) || cartResponse.data.length === 0) {
+        console.log('Shop: No cart found, creating a new one');
+        const createCartResponse = await api.post('/carts/', {});
+        console.log('Shop: Create cart response:', createCartResponse);
+        
+        if (!createCartResponse.data || !createCartResponse.data.id) {
+          throw new Error('Failed to create cart');
+        }
+        
+        cart = createCartResponse.data;
+      } else {
+        cart = cartResponse.data[0];
+      }
+      
+      console.log('Shop: Using cart:', cart);
+      
+      // Check if the item is already in the cart
+      const existingItem = cart.items?.find(item => item.listing.id === listingId);
+      
+      if (existingItem) {
+        // Item already in cart, update quantity
+        console.log('Shop: Item already in cart, updating quantity');
+        await api.post(`/carts/${cart.id}/update_quantity/`, {
+          listing_id: listingId,
+          quantity: existingItem.quantity + 1
+        });
+      } else {
+        // Add new item to cart
+        console.log('Shop: Adding new item to cart');
+        const addResponse = await api.post(`/carts/${cart.id}/add_item/`, { 
+          listing_id: listingId,
+          quantity: 1
+        });
+        console.log('Shop: Add to cart response:', addResponse);
+      }
+      
       window.incrementCartCount();
       console.log('Shop: Successfully added to cart');
+      
+      // Show success message
+      setSuccessMessage('Item added to cart successfully!');
+      setTimeout(() => {
+        setSuccessMessage('');
+      }, 3000);
+      
+      // Navigate to cart page
+      navigate('/cart');
     } catch (err) {
       console.error('Shop: Error adding to cart:', err);
       console.error('Shop: Error details:', err.response || err);
+      if (err.response) {
+        console.error('Shop: Response status:', err.response.status);
+        console.error('Shop: Response data:', err.response.data);
+      }
+      setError('Failed to add item to cart. Please try again.');
     }
   };
 
@@ -85,6 +143,11 @@ function Shop() {
     <div className="Shop">
       <Navigation />
       <div className="shop-container">
+        {successMessage && (
+          <div className="cart-message">
+            {successMessage}
+          </div>
+        )}
         <div className="filters">
           <input
             type="text"
