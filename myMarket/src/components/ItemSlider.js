@@ -1,11 +1,14 @@
 import React, { useRef, useState, useEffect } from 'react';
 import './ItemSlider.css';
+import AddToCartButton from './AddToCartButton';
 
-function ItemSlider({ items, onBuyClick, onAddToCart }) {
+function ItemSlider({ items, onBuyClick }) {
   const containerRef = useRef(null);
   const [isDragging, setIsDragging] = useState(false);
   const [startX, setStartX] = useState(0);
   const [scrollLeft, setScrollLeft] = useState(0);
+  const [successMessage, setSuccessMessage] = useState('');
+  const [error, setError] = useState('');
 
   useEffect(() => {
     console.log('ItemSlider received items:', items);
@@ -44,12 +47,18 @@ function ItemSlider({ items, onBuyClick, onAddToCart }) {
     }
   };
 
-  const handleAddToCartClick = (itemId) => {
-    if (onAddToCart) {
-      onAddToCart(itemId);
-    } else {
-      console.log('Add to cart button clicked for item:', itemId);
-    }
+  const handleAddToCartSuccess = (cartData) => {
+    setSuccessMessage('Item added to cart successfully!');
+    setTimeout(() => {
+      setSuccessMessage('');
+    }, 3000);
+  };
+
+  const handleAddToCartError = (errorMessage) => {
+    setError(errorMessage);
+    setTimeout(() => {
+      setError('');
+    }, 3000);
   };
 
   if (!items || items.length === 0) {
@@ -66,6 +75,16 @@ function ItemSlider({ items, onBuyClick, onAddToCart }) {
       onMouseUp={handleMouseUp}
       onMouseMove={handleMouseMove}
     >
+      {successMessage && (
+        <div className="cart-message">
+          {successMessage}
+        </div>
+      )}
+      {error && (
+        <div className="error-message">
+          {error}
+        </div>
+      )}
       <div className="item-track">
         {items.map((item) => {
           console.log('Rendering item:', item);
@@ -82,12 +101,9 @@ function ItemSlider({ items, onBuyClick, onAddToCart }) {
               {item.condition && <p className="item-condition">Condition: {item.condition}</p>}
               {item.seller && <p className="item-seller">Seller: {item.seller}</p>}
               <div className="item-buttons">
-                <button 
-                  className="add-to-cart-btn"
-                  onClick={() => handleAddToCartClick(item.id)}
-                >
-                  Add to Cart
-                </button>
+                <AddToCartButton 
+                  listingId={item.id}
+                />
               </div>
             </div>
           );

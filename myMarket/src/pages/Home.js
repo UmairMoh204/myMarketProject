@@ -61,81 +61,6 @@ function Home() {
     }
   }, [isAuthenticated, authLoading]);
 
-  const handleBuyItem = async (listingId) => {
-    if (!isAuthenticated) {
-      navigate('/signin');
-      return;
-    }
-    
-    try {
-      console.log('Adding to cart:', listingId);
-      
-      // First, try to get the user's cart
-      const cartResponse = await api.get('/carts/');
-      console.log('Cart response:', cartResponse);
-      
-      let cart;
-      
-      // If no cart exists, create one
-      if (!cartResponse.data || !Array.isArray(cartResponse.data) || cartResponse.data.length === 0) {
-        console.log('No cart found, creating a new one');
-        const createCartResponse = await api.post('/carts/', {});
-        console.log('Create cart response:', createCartResponse);
-        
-        if (!createCartResponse.data || !createCartResponse.data.id) {
-          throw new Error('Failed to create cart');
-        }
-        
-        cart = createCartResponse.data;
-      } else {
-        cart = cartResponse.data[0];
-      }
-      
-      console.log('Using cart:', cart);
-      
-      // Check if the item is already in the cart
-      const existingItem = cart.items?.find(item => item.listing.id === listingId);
-      
-      if (existingItem) {
-        // Item already in cart, update quantity
-        console.log('Item already in cart, updating quantity');
-        await api.post(`/carts/${cart.id}/update_quantity/`, {
-          listing_id: listingId,
-          quantity: existingItem.quantity + 1
-        });
-      } else {
-        // Add new item to cart
-        console.log('Adding new item to cart');
-        const addResponse = await api.post(`/carts/${cart.id}/add_item/`, { 
-          listing_id: listingId,
-          quantity: 1
-        });
-        console.log('Add to cart response:', addResponse);
-      }
-      
-      // Increment the cart count
-      window.incrementCartCount();
-      
-      // Show success message
-      setSuccessMessage('Item added to cart successfully!');
-      setTimeout(() => {
-        setSuccessMessage('');
-      }, 3000);
-      
-      console.log('Successfully added to cart');
-      navigate('/cart');
-    } catch (err) {
-      console.error('Error adding to cart:', err);
-      console.error('Error details:', err.response || err);
-      if (err.response) {
-        console.error('Response status:', err.response.status);
-        console.error('Response data:', err.response.data);
-      }
-      // Show error message to user
-      setError('Failed to add item to cart. Please try again.');
-    }
-  };
-
   const slides = [
     { 
       id: 1, 
@@ -166,15 +91,6 @@ function Home() {
     image: listing.image
   })) : [];
 
-  const newBrands = Array.isArray(listings) ? listings.slice(0, listings.length).map(listing => ({
-    id: listing.id,
-    content: listing.owner?.username || 'Unknown',
-    image: listing.image
-  })) : [];
-
-  if (authLoading) {
-    return <div className="flex justify-center items-center h-screen">Loading...</div>;
-  }
 
   return (
     <div className="Home">
@@ -213,8 +129,6 @@ function Home() {
                         condition: listing.condition,
                         seller: listing.owner?.username || 'Unknown'
                       }))} 
-                      onBuyClick={handleBuyItem}
-                      onAddToCart={handleBuyItem}
                     />
                   ) : (
                     <p style={{ textAlign: 'center', margin: '20px' }}>No listings available.</p>

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import './Cart.css';
 import api from '../utils/auth';
 import { isAuthenticated } from '../utils/auth';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import Navigation from '../components/Navigation';
 
 function Cart() {
@@ -11,6 +11,7 @@ function Cart() {
   const [error, setError] = useState(null);
   const [total, setTotal] = useState(0);
   const [cartId, setCartId] = useState(null);
+  const location = useLocation();
 
   useEffect(() => {
     const fetchCart = async () => {
@@ -19,6 +20,20 @@ function Cart() {
         if (!isAuthenticated()) {
           console.log('Cart: User not authenticated');
           setCartItems([]);
+          setLoading(false);
+          return;
+        }
+        
+        // Check if we have cart data passed from navigation
+        if (location.state?.cartData) {
+          console.log('Cart: Using passed cart data:', location.state.cartData);
+          const cartData = location.state.cartData;
+          setCartId(cartData.id);
+          setCartItems(cartData.items || []);
+          calculateTotal(cartData.items || []);
+          if (window.updateCartCount) {
+            window.updateCartCount(cartData.items?.length || 0);
+          }
           setLoading(false);
           return;
         }
@@ -76,7 +91,7 @@ function Cart() {
     };
 
     fetchCart();
-  }, []); // Empty dependency array means this runs once when component mounts
+  }, [location.state]); // Add location.state as dependency
 
   const calculateTotal = (items) => {
     const sum = items.reduce((acc, item) => {

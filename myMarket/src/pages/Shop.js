@@ -4,6 +4,7 @@ import api from '../utils/auth';
 import { useAuth } from '../context/AuthContext';
 import Navigation from '../components/Navigation';
 import './Shop.css';
+import AddToCartButton from '../components/AddToCartButton';
 
 function Shop() {
   const [listings, setListings] = useState([]);
@@ -57,79 +58,6 @@ function Shop() {
       fetchListings();
     }
   }, [isAuthenticated, authLoading]);
-
-  const handleAddToCart = async (listingId) => {
-    if (!isAuthenticated) {
-      navigate('/signin');
-      return;
-    }
-    try {
-      console.log('Shop: Adding to cart:', listingId);
-      
-      // First, try to get the user's cart
-      const cartResponse = await api.get('/carts/');
-      console.log('Shop: Cart response:', cartResponse);
-      
-      let cart;
-      
-      // If no cart exists, create one
-      if (!cartResponse.data || !Array.isArray(cartResponse.data) || cartResponse.data.length === 0) {
-        console.log('Shop: No cart found, creating a new one');
-        const createCartResponse = await api.post('/carts/', {});
-        console.log('Shop: Create cart response:', createCartResponse);
-        
-        if (!createCartResponse.data || !createCartResponse.data.id) {
-          throw new Error('Failed to create cart');
-        }
-        
-        cart = createCartResponse.data;
-      } else {
-        cart = cartResponse.data[0];
-      }
-      
-      console.log('Shop: Using cart:', cart);
-      
-      // Check if the item is already in the cart
-      const existingItem = cart.items?.find(item => item.listing.id === listingId);
-      
-      if (existingItem) {
-        // Item already in cart, update quantity
-        console.log('Shop: Item already in cart, updating quantity');
-        await api.post(`/carts/${cart.id}/update_quantity/`, {
-          listing_id: listingId,
-          quantity: existingItem.quantity + 1
-        });
-      } else {
-        // Add new item to cart
-        console.log('Shop: Adding new item to cart');
-        const addResponse = await api.post(`/carts/${cart.id}/add_item/`, { 
-          listing_id: listingId,
-          quantity: 1
-        });
-        console.log('Shop: Add to cart response:', addResponse);
-      }
-      
-      window.incrementCartCount();
-      console.log('Shop: Successfully added to cart');
-      
-      // Show success message
-      setSuccessMessage('Item added to cart successfully!');
-      setTimeout(() => {
-        setSuccessMessage('');
-      }, 3000);
-      
-      // Navigate to cart page
-      navigate('/cart');
-    } catch (err) {
-      console.error('Shop: Error adding to cart:', err);
-      console.error('Shop: Error details:', err.response || err);
-      if (err.response) {
-        console.error('Shop: Response status:', err.response.status);
-        console.error('Shop: Response data:', err.response.data);
-      }
-      setError('Failed to add item to cart. Please try again.');
-    }
-  };
 
   const filteredListings = listings.filter(listing => {
     const matchesSearch = listing.title.toLowerCase().includes(searchTerm.toLowerCase());
@@ -198,12 +126,18 @@ function Shop() {
                   {listing.category && <p className="category">Category: {listing.category}</p>}
                   {listing.condition && <p className="condition">Condition: {listing.condition}</p>}
                   {listing.owner && <p className="seller">Seller: {listing.owner.username}</p>}
-                  <button
-                    onClick={() => handleAddToCart(listing.id)}
-                    className="add-to-cart-btn"
-                  >
-                    Add to Cart
-                  </button>
+                  <AddToCartButton 
+                    listingId={listing.id}
+                    onSuccess={(cartData) => {
+                      setSuccessMessage('Item added to cart successfully!');
+                      setTimeout(() => {
+                        setSuccessMessage('');
+                      }, 3000);
+                    }}
+                    onError={(errorMessage) => {
+                      setError(errorMessage);
+                    }}
+                  />
                 </div>
               </div>
             ))}
