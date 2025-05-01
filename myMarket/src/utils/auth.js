@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // Create an axios instance with default config
 const api = axios.create({
-  baseURL: 'http://localhost:8000/api',
+  baseURL: 'http://localhost:8000/api/',
   headers: {
     'Content-Type': 'application/json',
   },
@@ -18,6 +18,7 @@ api.interceptors.request.use(
     return config;
   },
   (error) => {
+    console.error('Request error:', error);
     return Promise.reject(error);
   }
 );
@@ -30,14 +31,17 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
     
+    // Log the error for debugging
+    console.error('Response error:', error.response?.data || error.message);
+    
     // If the error is 401 and we haven't tried to refresh the token yet
-    if (error.response.status === 401 && !originalRequest._retry) {
+    if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
       
       try {
         const refreshToken = localStorage.getItem('refreshToken');
         if (!refreshToken) {
-          // No refresh token, user needs to login again
+          console.log('No refresh token found');
           localStorage.removeItem('token');
           localStorage.removeItem('refreshToken');
           localStorage.removeItem('isAuthenticated');
@@ -51,8 +55,10 @@ api.interceptors.response.use(
         });
         
         if (response.data && response.data.access) {
+          console.log('Token refreshed successfully');
           // Update the token in localStorage
           localStorage.setItem('token', response.data.access);
+          localStorage.setItem('isAuthenticated', 'true');
           
           // Update the Authorization header
           originalRequest.headers.Authorization = `Bearer ${response.data.access}`;
@@ -61,12 +67,24 @@ api.interceptors.response.use(
           return api(originalRequest);
         }
       } catch (refreshError) {
+        console.error('Token refresh failed:', refreshError);
         // Refresh token failed, user needs to login again
         localStorage.removeItem('token');
         localStorage.removeItem('refreshToken');
         localStorage.removeItem('isAuthenticated');
         window.location.href = '/signin';
         return Promise.reject(refreshError);
+      }
+    }
+    
+    // Handle other error cases
+    if (error.response) {
+      console.error('Error response:', error.response.data);
+      if (error.response.status === 401) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('refreshToken');
+        localStorage.removeItem('isAuthenticated');
+        window.location.href = '/signin';
       }
     }
     
@@ -78,7 +96,9 @@ api.interceptors.response.use(
 export const isAuthenticated = () => {
   const token = localStorage.getItem('token');
   const isAuth = localStorage.getItem('isAuthenticated');
-  return !!(token && isAuth === 'true');
+  const isAuthenticated = !!(token && isAuth === 'true');
+  console.log('Authentication status:', isAuthenticated);
+  return isAuthenticated;
 };
 
 // Function to logout

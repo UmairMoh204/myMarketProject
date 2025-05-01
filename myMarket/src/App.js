@@ -7,6 +7,7 @@ import Signin from './pages/Signin';
 import Shop from './pages/Shop';
 import Cart from './pages/Cart';
 import AuthTest from './pages/AuthTest';
+import MyListings from './pages/MyListings';
 import { AuthProvider } from './context/AuthContext';
 
 function App() {
@@ -21,6 +22,7 @@ function App() {
           <Route path="/shop" element={<Shop />} />
           <Route path="/cart" element={<Cart />} />
           <Route path="/auth-test" element={<AuthTest />} />
+          <Route path="/my-listings" element={<MyListings />} />
         </Routes>
       </Router>
     </AuthProvider>

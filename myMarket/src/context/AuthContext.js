@@ -12,6 +12,7 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const checkAuthStatus = () => {
       const authStatus = checkAuth();
+      console.log('Auth status in context:', authStatus);
       setIsAuthenticated(authStatus);
       setIsLoading(false);
     };
@@ -30,6 +31,7 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const updateAuthState = (status) => {
+    console.log('Updating auth state to:', status);
     setIsAuthenticated(status);
   };
 

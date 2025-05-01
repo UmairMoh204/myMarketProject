@@ -18,47 +18,57 @@ function Home() {
   const { isAuthenticated, isLoading: authLoading } = useAuth();
   const navigate = useNavigate();
 
-  const fetchListings = async () => {
-    try {
-      console.log('Fetching listings...');
-      setLoading(true);
-      const response = await api.get('/listings/');
-      console.log('Listings API response:', response);
-      
-      if (response.data) {
-        console.log('Response data type:', typeof response.data);
-        console.log('Is array?', Array.isArray(response.data));
-        
-        if (Array.isArray(response.data)) {
-          setListings(response.data);
-        } else if (response.data.results && Array.isArray(response.data.results)) {
-          console.log('Using paginated results');
-          setListings(response.data.results);
-        } else {
-          console.log('Unexpected data format:', response.data);
-          setListings([]);
-        }
-      } else {
-        console.log('No data in response');
-        setListings([]);
-      }
-      
-      setError(null);
-    } catch (err) {
-      console.error('Error fetching listings:', err);
-      console.error('Error details:', err.response || err);
-      setError('Failed to fetch listings. Please try again later.');
-      setListings([]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
-    console.log('Auth state changed:', { isAuthenticated, authLoading });
-    if (!authLoading && isAuthenticated) {
-      fetchListings();
-    }
+    console.log('Home component mounted, auth status:', isAuthenticated);
+    
+    const fetchListings = async () => {
+      try {
+        const response = await api.get('/listings/');
+        console.log('Raw listings response:', response.data);
+        
+        // Handle both array and object responses
+        let listingsData = [];
+        if (Array.isArray(response.data)) {
+          listingsData = response.data;
+        } else if (response.data && typeof response.data === 'object') {
+          // If response is an object, try to extract listings from it
+          if (response.data.results) {
+            listingsData = response.data.results;
+          } else if (response.data.listings) {
+            listingsData = response.data.listings;
+          } else {
+            // If no specific key found, try to convert object values to array
+            listingsData = Object.values(response.data);
+          }
+        }
+        
+        console.log('Processed listings data:', listingsData);
+        setListings(listingsData);
+      } catch (err) {
+        setError('Failed to fetch listings');
+        console.error('Error fetching listings:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    const fetchCartCount = async () => {
+      if (isAuthenticated) {
+        try {
+          const response = await api.get('/carts/');
+          if (response.data && response.data.length > 0 && response.data[0].items) {
+            if (window.updateCartCount) {
+              window.updateCartCount(response.data[0].items.length);
+            }
+          }
+        } catch (err) {
+          console.error('Error fetching cart count:', err);
+        }
+      }
+    };
+
+    fetchListings();
+    fetchCartCount();
   }, [isAuthenticated, authLoading]);
 
   const slides = [
@@ -84,13 +94,22 @@ function Home() {
     }
   ];
 
-  const featuredItems = Array.isArray(listings) ? listings.slice(0, listings.length).map(listing => ({
-    id: listing.id,
-    content: listing.title,
-    price: listing.price,
-    image: listing.image
-  })) : [];
+  console.log('Current listings state:', listings);
 
+  const featuredItems = Array.isArray(listings) ? listings.map(listing => {
+    console.log('Processing listing:', listing);
+    return {
+      id: listing.id,
+      content: listing.title,
+      price: listing.price,
+      image: listing.image || 'https://via.placeholder.com/150x150?text=No+Image',
+      category: listing.category,
+      condition: listing.condition,
+      seller: listing.owner?.username || 'Unknown'
+    };
+  }) : [];
+
+  console.log('Formatted featured items:', featuredItems);
 
   return (
     <div className="Home">
@@ -112,23 +131,13 @@ function Home() {
                 
                 <div>
                   <h2 style={{ margin: '50px' }}>What's New (Backend Listings)</h2>
-                  {!isAuthenticated ? (
-                    <p style={{ textAlign: 'center', margin: '20px' }}>No listings...</p>
-                  ) : loading ? (
+                  {loading ? (
                     <p style={{ textAlign: 'center', margin: '20px' }}>Loading listings...</p>
                   ) : error ? (
                     <p style={{ textAlign: 'center', margin: '20px', color: 'red' }}>{error}</p>
-                  ) : listings.length > 0 ? (
+                  ) : featuredItems.length > 0 ? (
                     <ItemSlider 
-                      items={listings.map(listing => ({
-                        id: listing.id,
-                        content: listing.title,
-                        price: listing.price,
-                        image: listing.image || 'https://via.placeholder.com/150x150?text=No+Image',
-                        category: listing.category,
-                        condition: listing.condition,
-                        seller: listing.owner?.username || 'Unknown'
-                      }))} 
+                      items={featuredItems}
                     />
                   ) : (
                     <p style={{ textAlign: 'center', margin: '20px' }}>No listings available.</p>

@@ -229,39 +229,63 @@ class CartViewSet(BaseModelViewSet):
         return cart
     
     def list(self, request, *args, **kwargs):
+        print(f"List cart request from user: {request.user.id}")
         cart = self.get_or_create_object()
         serializer = self.get_serializer(cart)
         return Response(serializer.data)
     
     def create(self, request, *args, **kwargs):
+        print(f"Create cart request from user: {request.user.id}")
         cart = self.get_or_create_object()
         serializer = self.get_serializer(cart)
         return Response(serializer.data, status=status.HTTP_200_OK)
     
     @action(detail=True, methods=['post'])
     def add_item(self, request, pk=None):
-        cart = self.get_object()
-        listing_id = request.data.get('listing_id')
-        quantity = request.data.get('quantity', 1)
-        
-        if not listing_id:
-            return Response({'error': 'Listing ID is required'}, status=status.HTTP_400_BAD_REQUEST)
-        
-        listing = get_object_or_404(Listing, id=listing_id)
-        cart_item, created = CartItem.objects.get_or_create(
-            cart=cart,
-            listing=listing,
-            defaults={'quantity': quantity}
-        )
-        
-        if not created:
-            cart_item.quantity += quantity
-            cart_item.save()
-        
-        # Refresh the cart to get updated items
-        cart.refresh_from_db()
-        serializer = self.get_serializer(cart)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        try:
+            print(f"Add item request from user: {request.user.id}")
+            print(f"Request data: {request.data}")
+            
+            cart = self.get_object()
+            listing_id = request.data.get('listing_id')
+            quantity = request.data.get('quantity', 1)
+            
+            if not listing_id:
+                print("No listing_id provided")
+                return Response({'error': 'Listing ID is required'}, status=status.HTTP_400_BAD_REQUEST)
+            
+            try:
+                listing = Listing.objects.get(id=listing_id, is_active=True)
+                print(f"Found listing: {listing.id} - {listing.title}")
+            except Listing.DoesNotExist:
+                print(f"Listing not found or not active: {listing_id}")
+                return Response({'error': 'Listing not found or not active'}, status=status.HTTP_404_NOT_FOUND)
+            
+            # Check if the item is already in the cart
+            cart_item, created = CartItem.objects.get_or_create(
+                cart=cart,
+                listing=listing,
+                defaults={'quantity': quantity}
+            )
+            
+            if not created:
+                print(f"Updating existing cart item quantity: {cart_item.quantity} -> {cart_item.quantity + quantity}")
+                cart_item.quantity += quantity
+                cart_item.save()
+            else:
+                print(f"Created new cart item with quantity: {quantity}")
+            
+            # Refresh the cart to get updated items
+            cart.refresh_from_db()
+            serializer = self.get_serializer(cart)
+            print(f"Cart after update: {serializer.data}")
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except Exception as e:
+            print(f"Error in add_item: {str(e)}")
+            print(f"Error type: {type(e)}")
+            import traceback
+            print(traceback.format_exc())
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
     
     @action(detail=True, methods=['post'])
     def remove_item(self, request, pk=None):

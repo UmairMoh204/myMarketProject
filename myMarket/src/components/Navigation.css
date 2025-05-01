@@ -6,8 +6,8 @@
   position: sticky; 
   top: 0;
   z-index: 1000;
-  background-color: white;
-  border-bottom: 1px solid #ccc;
+  background-color: #e6f2ff;  /* Light blue tint */
+  border-bottom: 1px solid #b3d1ff;  /* Slightly darker blue border */
 }
 
 .Home-Nav ul {
@@ -23,25 +23,29 @@
 }
 
 .Home-Nav a {
-  color: rgb(0, 0, 0);
+  color: #2c3e50;  /* Dark blue-gray for better contrast */
   text-decoration: none;
+  font-weight: 500;
 }
 
 .Home-Nav a:hover {
-  text-decoration: underline;
+  color: #1a73e8;  /* Google blue for hover */
+  text-decoration: none;
 }
 
 .logout-btn {
   background: none;
   border: none;
-  color: rgb(0, 0, 0);
+  color: #2c3e50;  /* Match link color */
   text-decoration: none;
   cursor: pointer;
   font: inherit;
+  font-weight: 500;
 }
 
 .logout-btn:hover {
-  text-decoration: underline;
+  color: #1a73e8;  /* Match hover color */
+  text-decoration: none;
 }
 
 .cart-link {

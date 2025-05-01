@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from .models import Listing, Cart, CartItem, UserProfile, Conversation, Message
 from django.contrib.auth.models import User
+from decimal import Decimal
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -31,13 +32,25 @@ class ListingSerializer(serializers.ModelSerializer):
 
 class CartItemSerializer(serializers.ModelSerializer):
     listing = ListingSerializer(read_only=True)
-    listing_id = serializers.IntegerField(write_only=True)
-    total_price = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
+    listing_id = serializers.IntegerField(write_only=True, required=True)
+    total_price = serializers.SerializerMethodField()
     
     class Meta:
         model = CartItem
         fields = ['id', 'listing', 'listing_id', 'quantity', 'created_at', 'total_price']
         read_only_fields = ['created_at']
+
+    def validate_listing_id(self, value):
+        try:
+            listing = Listing.objects.get(id=value, is_active=True)
+            return value
+        except Listing.DoesNotExist:
+            raise serializers.ValidationError("Listing not found or not active")
+
+    def get_total_price(self, obj):
+        if obj.listing and obj.listing.price:
+            return Decimal(str(obj.quantity)) * Decimal(str(obj.listing.price))
+        return Decimal('0.00')
 
 class CartSerializer(serializers.ModelSerializer):
     items = CartItemSerializer(many=True, read_only=True)
@@ -49,7 +62,11 @@ class CartSerializer(serializers.ModelSerializer):
         read_only_fields = ['user', 'created_at', 'updated_at']
 
     def get_total_price(self, obj):
-        return sum(item.quantity * item.listing.price for item in obj.items.all())
+        total = Decimal('0.00')
+        for item in obj.items.all():
+            if item.listing and item.listing.price:
+                total += Decimal(str(item.quantity)) * Decimal(str(item.listing.price))
+        return total
 
     def to_representation(self, instance):
         representation = super().to_representation(instance)

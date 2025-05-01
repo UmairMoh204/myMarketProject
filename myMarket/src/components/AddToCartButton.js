@@ -1,85 +1,87 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import api from '../utils/auth';
-import { useAuth } from '../context/AuthContext';
+import { isAuthenticated } from '../utils/auth';
+import { useNavigate } from 'react-router-dom';
 import './AddToCartButton.css';
 
-function AddToCartButton({ listingId, onSuccess, onError }) {
+function AddToCartButton({ listingId }) {
   const [loading, setLoading] = useState(false);
-  const { isAuthenticated } = useAuth();
+  const [error, setError] = useState(null);
+  const [success, setSuccess] = useState(false);
   const navigate = useNavigate();
 
   const handleAddToCart = async () => {
-    if (!isAuthenticated) {
-      navigate('/signin');
-      return;
-    }
-
-    setLoading(true);
     try {
-      console.log('Adding to cart:', listingId);
-      
-      const cartResponse = await api.get('/carts/');
-      console.log('Cart response:', cartResponse);
-      
-      let cart;
-      
-      if (!cartResponse.data || !Array.isArray(cartResponse.data) || cartResponse.data.length === 0) {
-        console.log('No cart found, creating a new one');
-        const createCartResponse = await api.post('/carts/', {});
-        console.log('Create cart response:', createCartResponse);
-        
-        if (!createCartResponse.data || !createCartResponse.data.id) {
-          throw new Error('Failed to create cart');
-        }
-        
-        cart = createCartResponse.data;
-      } else {
-        cart = cartResponse.data[0];
-      }
-      
-      console.log('Using cart:', cart);
-      
-      const existingItem = cart.items?.find(item => item.listing.id === listingId);
-      
-      if (existingItem) {
-        // Item already in cart, update quantity
-        console.log('Item already in cart, updating quantity');
-        await api.post(`/carts/${cart.id}/update_quantity/`, {
-          listing_id: listingId,
-          quantity: existingItem.quantity + 1
-        });
-      } else {
-        console.log('Adding new item to cart');
-        await api.post(`/carts/${cart.id}/add_item/`, { 
-          listing_id: listingId,
-          quantity: 1
-        });
+      console.log('Starting add to cart process...');
+      console.log('Listing ID:', listingId);
+      console.log('Is authenticated:', isAuthenticated());
+      console.log('Token:', localStorage.getItem('token'));
+
+      if (!isAuthenticated()) {
+        setError('Please sign in to add items to cart');
+        navigate('/signin');
+        return;
       }
 
-      const updatedCartResponse = await api.get(`/carts/${cart.id}/`);
-      console.log('Updated cart response:', updatedCartResponse);
-      
-      if (updatedCartResponse.data && updatedCartResponse.data.items) {
-        // Update the cart count with the new items
-        window.updateCartCount(updatedCartResponse.data.items.length);
+      setLoading(true);
+      setError(null);
+
+      // Get the cart first
+      console.log('Getting cart...');
+      const cartResponse = await api.get('carts/');
+      console.log('Cart response:', cartResponse.data);
+
+      if (!cartResponse.data || !cartResponse.data.id) {
+        console.error('Invalid cart response:', cartResponse);
+        throw new Error('Invalid cart response');
       }
-      
-      if (onSuccess) {
-        onSuccess(updatedCartResponse.data);
+
+      // Add item to cart
+      console.log('Adding item to cart:', listingId);
+      const addResponse = await api.post(`carts/${cartResponse.data.id}/add_item/`, {
+        listing_id: listingId,
+        quantity: 1
+      });
+      console.log('Add item response:', addResponse.data);
+
+      if (!addResponse.data || !addResponse.data.items) {
+        console.error('Invalid add item response:', addResponse);
+        throw new Error('Invalid response from server');
       }
-    
-      navigate('/cart', { state: { cartData: updatedCartResponse.data } });
+
+      // Get updated cart
+      console.log('Getting updated cart...');
+      const updatedCart = await api.get('carts/');
+      console.log('Updated cart:', updatedCart.data);
+
+      // Update cart count in navigation
+      if (window.updateCartCount) {
+        const itemCount = updatedCart.data.items ? updatedCart.data.items.length : 0;
+        console.log('Updating cart count:', itemCount);
+        window.updateCartCount(itemCount);
+      }
+
+      setSuccess(true);
+      setTimeout(() => setSuccess(false), 2000);
     } catch (err) {
       console.error('Error adding to cart:', err);
-      console.error('Error details:', err.response || err);
       if (err.response) {
-        console.error('Response status:', err.response.status);
-        console.error('Response data:', err.response.data);
-      }
-      
-      if (onError) {
-        onError('Failed to add item to cart. Please try again.');
+        console.error('Error response:', err.response.data);
+        console.error('Error status:', err.response.status);
+        console.error('Error headers:', err.response.headers);
+        const errorMessage = err.response.data?.error || 
+                           err.response.data?.detail || 
+                           err.response.data?.message || 
+                           'Failed to add item to cart';
+        setError(errorMessage);
+        if (err.response.status === 401) {
+          navigate('/signin');
+          return;
+        }
+      } else if (err.message) {
+        setError(err.message);
+      } else {
+        setError('Failed to add item to cart. Please try again.');
       }
     } finally {
       setLoading(false);
@@ -87,13 +89,17 @@ function AddToCartButton({ listingId, onSuccess, onError }) {
   };
 
   return (
-    <button 
-      className="add-to-cart-btn"
-      onClick={handleAddToCart}
-      disabled={loading}
-    >
-      {loading ? 'Adding...' : 'Add to Cart'}
-    </button>
+    <div className="add-to-cart-container">
+      <button
+        className="add-to-cart-btn"
+        onClick={handleAddToCart}
+        disabled={loading}
+      >
+        {loading ? 'Adding...' : 'Add to Cart'}
+      </button>
+      {error && <div className="error-message">{error}</div>}
+      {success && <div className="success-message">Added to cart!</div>}
+    </div>
   );
 }
 

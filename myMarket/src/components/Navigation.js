@@ -8,9 +8,13 @@ import './Navigation.css';
 function Navigation() {
   const { isAuthenticated } = useAuth();
   const [cartCount, setCartCount] = useState(0);
+  const [showMyListings, setShowMyListings] = useState(isAuthenticated);
 
   useEffect(() => {
-    // Initialize cart count when component mounts
+    // Update showMyListings whenever isAuthenticated changes
+    setShowMyListings(isAuthenticated);
+
+    // Initialize cart count when component mounts or auth status changes
     const fetchCartCount = async () => {
       if (isAuthenticated) {
         try {
@@ -21,23 +25,23 @@ function Navigation() {
         } catch (err) {
           console.error('Error fetching cart count:', err);
         }
+      } else {
+        setCartCount(0); // Reset cart count when logged out
       }
     };
 
     fetchCartCount();
   }, [isAuthenticated]);
 
-  const incrementCartCount = () => {
-    setCartCount(prevCount => prevCount + 1);
-  };
-
-  const updateCartCount = (count) => {
-    setCartCount(count);
+  const handleLogout = () => {
+    logout();
+    setCartCount(0); // Reset cart count on logout
+    setShowMyListings(false); // Hide My Listings on logout
   };
 
   // Expose functions to window object for global access
-  window.incrementCartCount = incrementCartCount;
-  window.updateCartCount = updateCartCount;
+  window.incrementCartCount = () => setCartCount(prev => prev + 1);
+  window.updateCartCount = (count) => setCartCount(count);
 
   return (
     <nav className="Home-Nav">
@@ -50,9 +54,11 @@ function Navigation() {
             <span className="cart-count">{cartCount}</span>
           </Link>
         </li>
-        <li><Link to="/myListings"> My Listings </Link></li>
+        {showMyListings && (
+          <li><Link to="/my-listings"> My Listings </Link></li>
+        )}
         {isAuthenticated ? (
-          <li><button onClick={logout} className="logout-btn">Sign Out</button></li>
+          <li><button onClick={handleLogout} className="logout-btn">Sign Out</button></li>
         ) : (
           <li><Link to="/signin"> Sign In </Link></li>
         )}
