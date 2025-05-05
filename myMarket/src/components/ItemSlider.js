@@ -9,6 +9,7 @@ function ItemSlider({ items, onBuyClick }) {
   const [scrollLeft, setScrollLeft] = useState(0);
   const [successMessage, setSuccessMessage] = useState('');
   const [error, setError] = useState('');
+  const BACKEND_URL = 'http://localhost:8000';
 
   useEffect(() => {
     console.log('ItemSlider received items:', items);
@@ -66,6 +67,12 @@ function ItemSlider({ items, onBuyClick }) {
     return <div className="item-container">No items available</div>;
   }
 
+  const getImageUrl = (imagePath) => {
+    if (!imagePath) return 'https://via.placeholder.com/150x150?text=No+Image';
+    if (imagePath.startsWith('http')) return imagePath;
+    return `${BACKEND_URL}${imagePath.startsWith('/') ? '' : '/'}${imagePath}`;
+  };
+
   return (
     <div
       className="item-container"
@@ -87,19 +94,21 @@ function ItemSlider({ items, onBuyClick }) {
       )}
       <div className="item-track">
         {items.map((item) => {
-          console.log('Rendering item:', item);
+          const imageUrl = getImageUrl(item.image);
+          console.log('Image URL for item:', item.id, imageUrl);
           return (
             <div key={item.id} className="item">
-              {item.image && (
-                <div className="item-image">
-                  <img src={item.image} alt={item.content} />
-                </div>
-              )}
+              <div className="item-image">
+                <img src={imageUrl} alt={item.content} onError={(e) => {
+                  e.target.onerror = null;
+                  e.target.src = 'https://via.placeholder.com/150x150?text=No+Image';
+                }} />
+              </div>
               <h2>{item.content}</h2>
               {item.price && <p className="item-price">${item.price}</p>}
-              {item.category && <p className="item-category">Category: {item.category}</p>}
+              {/* {item.category && <p className="item-category">Category: {item.category}</p>}
               {item.condition && <p className="item-condition">Condition: {item.condition}</p>}
-              {item.seller && <p className="item-seller">Seller: {item.seller}</p>}
+              {item.seller && <p className="item-seller">Seller: {item.seller}</p>} */}
               <div className="item-buttons">
                 <AddToCartButton 
                   listingId={item.id}

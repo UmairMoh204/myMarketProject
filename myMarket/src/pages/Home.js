@@ -6,6 +6,7 @@ import { Routes, Route, Link, useNavigate } from 'react-router-dom';
 import Shop from './Shop';
 import Cart from './Cart';
 import Signin from './Signin';
+import MyListings from './MyListings';
 import api from '../utils/auth';
 import { useAuth } from '../context/AuthContext';
 import Navigation from '../components/Navigation';
@@ -102,7 +103,7 @@ function Home() {
       id: listing.id,
       content: listing.title,
       price: listing.price,
-      image: listing.image || 'https://via.placeholder.com/150x150?text=No+Image',
+      image: listing.image,
       category: listing.category,
       condition: listing.condition,
       seller: listing.owner?.username || 'Unknown'
@@ -148,6 +149,7 @@ function Home() {
           />
           <Route path="/shop" element={<Shop />} />
           <Route path="/cart" element={<Cart />} />
+          <Route path="/myListings" element={<MyListings />} />
           <Route path="/signin" element={<Signin />} />
           <Route path="/verify-email/:uidb64/:token" element={<Signin />} />
           <Route path="/reset-password/:uidb64/:token" element={<Signin />} />

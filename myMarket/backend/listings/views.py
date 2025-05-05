@@ -14,6 +14,11 @@ from django.utils import timezone
 from datetime import timedelta
 from django.db.models import Count
 from rest_framework.exceptions import ValidationError
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.utils.encoding import force_bytes
+from django.contrib.auth.tokens import default_token_generator
+from django.core.mail import send_mail
+from django.shortcuts import redirect
 
 # Create your views here.
 
@@ -39,16 +44,18 @@ def register_user(request):
     serializer = UserSerializer(data=request.data)
     if serializer.is_valid():
         try:
-            # Create user with is_active=True immediately (no email verification needed)
+            # Create user with is_active=False immediately (no email verification needed)
             user = User.objects.create_user(
                 username=serializer.validated_data['username'],
                 email=serializer.validated_data.get('email', ''),
                 password=request.data.get('password', ''),
-                is_active=True  # User is active immediately
+                is_active=False  # User is active immediately
             )
             
             # Create user profile
             UserProfile.objects.create(user=user)
+            
+            send_verification_email(user, request)
             
             return Response({
                 'message': 'Registration successful. You can now log in.',
@@ -57,25 +64,6 @@ def register_user(request):
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-@api_view(['GET'])
-@permission_classes([permissions.AllowAny])
-def verify_email(request, uidb64, token):
-    try:
-        from django.utils.http import urlsafe_base64_decode
-        from django.contrib.auth.tokens import default_token_generator
-        
-        uid = urlsafe_base64_decode(uidb64).decode()
-        user = User.objects.get(pk=uid)
-        
-        if default_token_generator.check_token(user, token):
-            user.is_active = True
-            user.save()
-            return Response({'message': 'Email verified successfully'}, status=status.HTTP_200_OK)
-        else:
-            return Response({'error': 'Invalid verification link'}, status=status.HTTP_400_BAD_REQUEST)
-    except (TypeError, ValueError, OverflowError, User.DoesNotExist):
-        return Response({'error': 'Invalid verification link'}, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['POST'])
 @permission_classes([permissions.AllowAny])
@@ -398,3 +386,32 @@ def api_root(request, format=None):
         'messages': reverse('message-list', request=request, format=format),
         'carts': reverse('cart-list', request=request, format=format),
     })
+
+
+# ----------------------------------------------------------------------------------------------------------------------------------------
+
+def send_verification_email(user, request):
+    uid = urlsafe_base64_encode(force_bytes(user.pk))
+    token = default_token_generator.make_token(user)
+    verify_url = request.build_absolute_uri(
+        reverse('verify-email', kwargs={'uidb64': uid, 'token': token})
+    )
+    subject = 'Verify your email address'
+    message = f'Hi {user.username},\n\nPlease verify your email by clicking the link below:\n{verify_url}\n\nThank you!'
+    send_mail(subject, message, 'noreply@yourdomain.com', [user.email])
+
+@api_view(['GET'])
+@permission_classes([permissions.AllowAny])
+def verify_email(request, uidb64, token):
+    try:
+        uid = urlsafe_base64_decode(uidb64).decode()
+        user = User.objects.get(pk=uid)
+    except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+        user = None
+
+    if user and default_token_generator.check_token(user, token):
+        user.is_active = True
+        user.save()
+        return render(request, 'email_verification_success.html', {'user': user})
+    else:
+        return render(request, 'email_verification_failed.html')

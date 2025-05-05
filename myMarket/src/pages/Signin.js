@@ -24,8 +24,6 @@ function Signin() {
   useEffect(() => {
     // Check if we're on a verification or reset password page
     if (window.location.pathname.includes('/verify-email/')) {
-      setIsVerifying(true);
-      verifyEmail();
     } else if (window.location.pathname.includes('/reset-password/')) {
       setIsResetPassword(true);
     }
@@ -36,18 +34,6 @@ function Signin() {
       ...formData,
       [e.target.name]: e.target.value
     });
-  };
-
-  const verifyEmail = async () => {
-    try {
-      const response = await axios.get(`http://localhost:8000/api/verify-email/${uidb64}/${token}/`);
-      setSuccess('Email verified successfully! You can now login.');
-      setTimeout(() => {
-        navigate('/signin');
-      }, 3000);
-    } catch (err) {
-      setError('Email verification failed. The link may be invalid or expired.');
-    }
   };
 
   const handleSubmit = async (e) => {

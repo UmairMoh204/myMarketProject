@@ -1,17 +1,17 @@
 .cart-container {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 2rem;
   display: flex;
   flex-direction: column;
-  gap: 2rem;
-  min-height: calc(100vh - 4rem); /* Account for nav height */
-  padding-top: 5rem; /* Add space for fixed nav */
   position: relative;
 }
 
 .cart-content {
-  width: 100%;
+  width: 90%;
+  max-width: 1200px;
+  margin: 20px auto;
+  padding: 20px;
+  box-sizing: border-box;
   position: relative;
   display: flex;
   gap: 2rem;
@@ -216,11 +216,12 @@
 @media (max-width: 768px) {
   .cart-container {
     padding: 1rem;
-    padding-top: 5rem; /* Maintain space for nav on mobile */
+    padding-top: 5rem; 
   }
 
   .cart-content {
     flex-direction: column;
+    padding: 10px;
   }
   
   .cart-items {
@@ -260,4 +261,4 @@
     width: 100%;
     margin-top: 1rem;
   }
-} 
+}

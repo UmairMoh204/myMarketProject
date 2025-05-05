@@ -8,25 +8,16 @@ import './Navigation.css';
 function Navigation() {
   const { isAuthenticated } = useAuth();
   const [cartCount, setCartCount] = useState(0);
-  const [showMyListings, setShowMyListings] = useState(isAuthenticated);
 
   useEffect(() => {
-    // Update showMyListings whenever isAuthenticated changes
-    setShowMyListings(isAuthenticated);
-
-    // Initialize cart count when component mounts or auth status changes
     const fetchCartCount = async () => {
-      if (isAuthenticated) {
-        try {
-          const response = await api.get('/carts/');
-          if (response.data && response.data.length > 0 && response.data[0].items) {
-            setCartCount(response.data[0].items.length);
-          }
-        } catch (err) {
-          console.error('Error fetching cart count:', err);
+      try {
+        const response = await api.get('/carts/');
+        if (response.data && response.data.length > 0 && response.data[0].items) {
+          setCartCount(response.data[0].items.length);
         }
-      } else {
-        setCartCount(0); // Reset cart count when logged out
+      } catch (err) {
+        console.error('Error fetching cart count:', err);
       }
     };
 
@@ -35,11 +26,9 @@ function Navigation() {
 
   const handleLogout = () => {
     logout();
-    setCartCount(0); // Reset cart count on logout
-    setShowMyListings(false); // Hide My Listings on logout
+    setCartCount(0); 
   };
 
-  // Expose functions to window object for global access
   window.incrementCartCount = () => setCartCount(prev => prev + 1);
   window.updateCartCount = (count) => setCartCount(count);
 
@@ -54,17 +43,11 @@ function Navigation() {
             <span className="cart-count">{cartCount}</span>
           </Link>
         </li>
-        {showMyListings && (
-          <li><Link to="/my-listings"> My Listings </Link></li>
-        )}
-        {isAuthenticated ? (
-          <li><button onClick={handleLogout} className="logout-btn">Sign Out</button></li>
-        ) : (
-          <li><Link to="/signin"> Sign In </Link></li>
-        )}
+        <li><Link to="/my-listings"> My Listings </Link></li>
+        <li><button onClick={handleLogout} className="logout-btn">Sign Out</button></li>
       </ul>
     </nav>
   );
 }
 
-export default Navigation; 
+export default Navigation;

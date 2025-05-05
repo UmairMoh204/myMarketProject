@@ -1,13 +1,12 @@
 .Home-Nav {
   display: flex;
   padding: 1rem;
-  margin-top: 20px;
+  margin-top: 10px;
   justify-content: flex-end;
   position: sticky; 
   top: 0;
   z-index: 1000;
-  background-color: #e6f2ff;  /* Light blue tint */
-  border-bottom: 1px solid #b3d1ff;  /* Slightly darker blue border */
+  background-color: #ffffff;  
 }
 
 .Home-Nav ul {
@@ -23,20 +22,20 @@
 }
 
 .Home-Nav a {
-  color: #2c3e50;  /* Dark blue-gray for better contrast */
+  color: #2c3e50;  
   text-decoration: none;
   font-weight: 500;
 }
 
 .Home-Nav a:hover {
-  color: #1a73e8;  /* Google blue for hover */
+  color: #1a73e8;  
   text-decoration: none;
 }
 
 .logout-btn {
   background: none;
   border: none;
-  color: #2c3e50;  /* Match link color */
+  color: #2c3e50;  
   text-decoration: none;
   cursor: pointer;
   font: inherit;
@@ -44,7 +43,7 @@
 }
 
 .logout-btn:hover {
-  color: #1a73e8;  /* Match hover color */
+  color: #1a73e8;  
   text-decoration: none;
 }
 

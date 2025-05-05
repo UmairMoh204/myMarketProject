@@ -27,7 +27,6 @@ function Cart() {
 
       if (response.data) {
         setCart(response.data);
-        // Update cart count in navigation
         if (window.updateCartCount) {
           window.updateCartCount(response.data.items ? response.data.items.length : 0);
         }
@@ -92,8 +91,6 @@ function Cart() {
       await api.post(`/carts/${cart.id}/remove_item/`, {
         listing_id: itemId
       });
-
-      // Refresh cart data
       await fetchCart();
     } catch (err) {
       console.error('Error removing item:', err);
