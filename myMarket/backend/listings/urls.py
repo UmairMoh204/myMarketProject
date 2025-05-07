@@ -16,5 +16,10 @@ urlpatterns = [
     path('', include(router.urls)),
     path('api-root/', views.api_root, name='api-root'),
     path('register/', views.register_user, name='register'),
+    path('verify-email/<str:uidb64>/<str:token>/', views.verify_email, name='verify-email'),
+    path('request-password-reset/', views.request_password_reset, name='request-password-reset'),
+    path('reset-password/<str:uidb64>/<str:token>/', views.reset_password, name='reset-password'),
     path('user-profile/', views.user_profile, name='user-profile'),
+    path('create-checkout-session/', views.create_checkout_session, name='create-checkout-session'),
+    path('webhook/stripe/', views.stripe_webhook, name='stripe-webhook'),
 ]

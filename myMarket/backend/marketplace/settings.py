@@ -131,7 +131,7 @@ SIMPLE_JWT = {
 }
 
 # CORS settings
-CORS_ALLOWED_ORIGINS = os.environ.get('CORS_ALLOWED_ORIGINS', 'http://localhost:3000').split(',')
+CORS_ALLOWED_ORIGINS = os.environ.get('CORS_ALLOWED_ORIGINS', 'http://localhost:3000,https://checkout.stripe.com').split(',')
 CORS_ALLOW_CREDENTIALS = True
 
 # Frontend URL for email verification and password reset
@@ -152,6 +152,8 @@ if DEBUG:
     CORS_ALLOW_ALL_ORIGINS = True
     CORS_ALLOW_HEADERS = ['*']
     CORS_ALLOW_METHODS = ['*']
+    CORS_ALLOW_CREDENTIALS = True
+    CORS_EXPOSE_HEADERS = ['*']
 
 CORS_ALLOW_METHODS = [
     'DELETE',
@@ -172,6 +174,7 @@ CORS_ALLOW_HEADERS = [
     'user-agent',
     'x-csrftoken',
     'x-requested-with',
+    'stripe-signature',
 ]
 
 # Security Settings
@@ -202,3 +205,8 @@ else:
     SECURE_SSL_HOST = None
     # Disable security middleware in development
     MIDDLEWARE = [m for m in MIDDLEWARE if m != 'django.middleware.security.SecurityMiddleware']
+
+# Stripe settings
+STRIPE_PUBLISHABLE_KEY = 'your_publishable_key_here'
+STRIPE_SECRET_KEY = 'your_secret_key_here'
+STRIPE_WEBHOOK_SECRET = 'whsec_your_webhook_signing_secret'  # You'll need to get this from your Stripe dashboard

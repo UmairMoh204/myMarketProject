@@ -2,6 +2,7 @@ from django.shortcuts import render, get_object_or_404
 from rest_framework import viewsets, permissions, filters, status
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
 from django_filters.rest_framework import DjangoFilterBackend
 from .models import Listing, Cart, CartItem, UserProfile, Conversation, Message
 from .serializers import (
@@ -19,6 +20,13 @@ from django.utils.encoding import force_bytes
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django.shortcuts import redirect
+import stripe
+from django.conf import settings
+from django.views.decorators.csrf import csrf_exempt
+from django.http import HttpResponse
+
+# Initialize Stripe with your secret key
+stripe.api_key = settings.STRIPE_SECRET_KEY
 
 # Create your views here.
 
@@ -415,3 +423,104 @@ def verify_email(request, uidb64, token):
         return render(request, 'email_verification_success.html', {'user': user})
     else:
         return render(request, 'email_verification_failed.html')
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def create_checkout_session(request):
+    try:
+        print("Creating checkout session...")
+        cart_id = request.data.get('cart_id')
+        if not cart_id:
+            return Response({'error': 'Cart ID is required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        print(f"Getting cart with ID: {cart_id}")
+        # Get cart items
+        cart = Cart.objects.get(id=cart_id, user=request.user)
+        
+        # Create line items for Stripe
+        line_items = []
+        for item in cart.items.all():
+            print(f"Processing item: {item.listing.title}")
+            image_url = None
+            if item.listing.image:
+                try:
+                    image_url = request.build_absolute_uri(item.listing.image.url)
+                except Exception as e:
+                    print(f"Error getting image URL: {str(e)}")
+                    pass
+
+            price = int(float(item.listing.price) * 100)  # Convert to cents
+            print(f"Item price in cents: {price}")
+            
+            line_items.append({
+                'price_data': {
+                    'currency': 'usd',
+                    'product_data': {
+                        'name': item.listing.title,
+                        'images': [image_url] if image_url else [],
+                    },
+                    'unit_amount': price,
+                },
+                'quantity': item.quantity,
+            })
+
+        print("Creating Stripe checkout session...")
+        # Create Stripe checkout session
+        session = stripe.checkout.Session.create(
+            payment_method_types=['card'],
+            line_items=line_items,
+            mode='payment',
+            success_url='http://localhost:3000/checkout/success?session_id={CHECKOUT_SESSION_ID}',
+            cancel_url='http://localhost:3000/cart',
+            customer_email=request.user.email,
+            metadata={
+                'cart_id': cart.id  # Add cart ID to metadata
+            }
+        )
+
+        print(f"Session created successfully with ID: {session.id}")
+        return Response({'sessionId': session.id})
+    except Cart.DoesNotExist:
+        print("Cart not found error")
+        return Response({'error': 'Cart not found'}, status=status.HTTP_404_NOT_FOUND)
+    except stripe.error.StripeError as e:
+        print(f"Stripe error: {str(e)}")
+        return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+    except Exception as e:
+        print(f"Error creating checkout session: {str(e)}")
+        import traceback
+        print(traceback.format_exc())
+        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+@csrf_exempt
+def stripe_webhook(request):
+    payload = request.body
+    sig_header = request.META.get('HTTP_STRIPE_SIGNATURE')
+    endpoint_secret = settings.STRIPE_WEBHOOK_SECRET
+
+    try:
+        event = stripe.Webhook.construct_event(
+            payload, sig_header, endpoint_secret
+        )
+    except ValueError as e:
+        return HttpResponse(status=400)
+    except stripe.error.SignatureVerificationError as e:
+        return HttpResponse(status=400)
+
+    if event['type'] == 'checkout.session.completed':
+        session = event['data']['object']
+        cart_id = session.get('metadata', {}).get('cart_id')
+        
+        if cart_id:
+            try:
+                cart = Cart.objects.get(id=cart_id)
+                # Mark listings as inactive
+                for item in cart.items.all():
+                    item.listing.is_active = False
+                    item.listing.save()
+                # Clear the cart
+                cart.items.clear()
+            except Cart.DoesNotExist:
+                pass
+
+    return HttpResponse(status=200)
