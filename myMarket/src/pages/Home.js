@@ -10,6 +10,7 @@ import MyListings from './MyListings';
 import api from '../utils/auth';
 import { useAuth } from '../context/AuthContext';
 import Navigation from '../components/Navigation';
+import Success from './Success';
 
 function Home() {
   const [listings, setListings] = useState([]);
@@ -153,6 +154,7 @@ function Home() {
           <Route path="/signin" element={<Signin />} />
           <Route path="/verify-email/:uidb64/:token" element={<Signin />} />
           <Route path="/reset-password/:uidb64/:token" element={<Signin />} />
+          <Route path="/success" element={<Success />} />
         </Routes>
       </div>
     </div>

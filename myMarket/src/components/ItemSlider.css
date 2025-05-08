@@ -17,7 +17,25 @@
   height: 100%;
   box-sizing: border-box;
   transition: transform 0.3s ease-in-out;
-  white-space: nowrap; 
+  white-space: nowrap;
+}
+
+.rotating-track {
+  animation: scroll 30s linear infinite;
+  width: max-content;
+}
+
+@keyframes scroll {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%); 
+  }
+}
+
+.item-container:hover .rotating-track {
+  animation-play-state: paused;
 }
 
 .item {

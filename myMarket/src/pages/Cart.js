@@ -2,14 +2,28 @@ import React, { useState, useEffect } from 'react';
 import './Cart.css';
 import api from '../utils/auth';
 import { isAuthenticated } from '../utils/auth';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import Navigation from '../components/Navigation';
+import { loadStripe } from '@stripe/stripe-js';
+
+const stripePromise = loadStripe('pk_test_51RLEDTQQ3K3Wu9nNAXFraNWASsGYj4vql7z4uHz3hBqxoYR6RqiumXYtNXkb0bjz1V2eQsnX9PSGJcDvbSNxl49700mJfHqSVo');
 
 function Cart() {
   const [cart, setCart] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [checkoutLoading, setCheckoutLoading] = useState(false);
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+
+  useEffect(() => {
+    // Check if we're returning from Stripe checkout
+    const sessionId = searchParams.get('session_id');
+    if (sessionId) {
+      // If we have a session_id, we've returned from Stripe
+      navigate('/success');
+    }
+  }, [searchParams, navigate]);
 
   const fetchCart = async () => {
     try {
@@ -107,6 +121,67 @@ function Cart() {
     }
   };
 
+  const handleCheckout = async () => {
+    try {
+      if (!cart || !cart.id) {
+        setError('Cart is empty or invalid');
+        return;
+      }
+
+      setCheckoutLoading(true);
+      setError(null);
+
+      console.log('Creating checkout session for cart:', cart.id);
+      
+      // Create a checkout session
+      const response = await api.post('/create-checkout-session/', {
+        cart_id: cart.id
+      });
+
+      console.log('Checkout session response:', response.data);
+
+      // Get the session ID
+      const { sessionId } = response.data;
+      if (!sessionId) {
+        throw new Error('No session ID received from server');
+      }
+
+      // Load Stripe
+      const stripe = await stripePromise;
+      if (!stripe) {
+        throw new Error('Stripe failed to load');
+      }
+
+      console.log('Redirecting to Stripe checkout with session ID:', sessionId);
+
+      // Redirect to Stripe Checkout
+      const { error } = await stripe.redirectToCheckout({
+        sessionId
+      });
+
+      if (error) {
+        console.error('Stripe redirect error:', error);
+        throw error;
+      }
+    } catch (err) {
+      console.error('Checkout error:', err);
+      if (err.response) {
+        console.error('Error response data:', err.response.data);
+        console.error('Error response status:', err.response.status);
+        console.error('Error response headers:', err.response.headers);
+        setError(err.response.data?.error || err.response.data?.detail || 'Failed to initiate checkout. Please try again.');
+      } else if (err.request) {
+        console.error('Error request:', err.request);
+        setError('No response from server. Please check your connection and try again.');
+      } else {
+        console.error('Error message:', err.message);
+        setError(err.message || 'Failed to initiate checkout. Please try again.');
+      }
+    } finally {
+      setCheckoutLoading(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="cart-container">
@@ -171,8 +246,30 @@ function Cart() {
               </div>
             ))}
             <div className="cart-summary">
-              <h3>Total: ${cart.total_price}</h3>
-              <button className="checkout-btn">Proceed to Checkout</button>
+              <h3>Order Summary</h3>
+              <div className="summary-item">
+                <span>Items ({cart.items.length})</span>
+                <span>${cart.total_price}</span>
+              </div>
+              <div className="summary-item">
+                <span>Shipping</span>
+                <span>Free</span>
+              </div>
+              <div className="summary-item">
+                <span>Tax</span>
+                <span>${(cart.total_price * 0.1).toFixed(2)}</span>
+              </div>
+              <div className="summary-total">
+                <span>Total</span>
+                <span>${(cart.total_price * 1.1).toFixed(2)}</span>
+              </div>
+              <button 
+                className="checkout-btn" 
+                onClick={handleCheckout}
+                disabled={checkoutLoading}
+              >
+                {checkoutLoading ? 'Processing...' : 'Proceed to Checkout'}
+              </button>
             </div>
           </div>
         ) : (

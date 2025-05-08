@@ -2,13 +2,21 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Navigation from '../components/Navigation';
+import ItemSlider from '../components/ItemSlider';
+import Table from '../components/OrderTable';
+import MyListingItemSlider from '../components/myListingItemSlider';
+import OrderTable from '../components/OrderTable';
 import './MyListings.css';
 
 const MyListings = () => {
     const [listings, setListings] = useState([]);
+    const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [showCreateForm, setShowCreateForm] = useState(false);
+    const [userProfile, setUserProfile] = useState(null);
+    const [trackingNumber, setTrackingNumber] = useState('');
+    const [selectedOrder, setSelectedOrder] = useState(null);
     const [newListing, setNewListing] = useState({
         title: '',
         description: '',
@@ -38,7 +46,53 @@ const MyListings = () => {
 
     useEffect(() => {
         fetchMyListings();
+        fetchUserProfile();
+        fetchOrders();
     }, []);
+
+    const fetchUserProfile = async () => {
+        try {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                console.error('No token found. Please log in.');
+                return;
+            }
+            
+            const response = await axios.get('http://localhost:8000/api/user-profile/', {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            
+            if (response.data) {
+                setUserProfile(response.data);
+            }
+        } catch (err) {
+            console.error('Error fetching user profile:', err);
+        }
+    };
+    
+    const fetchOrders = async () => {
+        try {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                console.error('No token found. Please log in.');
+                return;
+            }
+            
+            const response = await axios.get('http://localhost:8000/api/orders/', {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            
+            if (response.data) {
+                setOrders(response.data);
+            }
+        } catch (err) {
+            console.error('Error fetching orders:', err);
+        }
+    };
 
     const fetchMyListings = async () => {
         try {
@@ -175,6 +229,29 @@ const MyListings = () => {
         }
     };
 
+    const handleTrackingSubmit = async (e) => {
+        e.preventDefault();
+        if (!selectedOrder || !trackingNumber) return;
+
+        try {
+            const token = localStorage.getItem('token');
+            await axios.post(`http://localhost:8000/api/orders/${selectedOrder.id}/tracking/`, {
+                tracking_number: trackingNumber
+            }, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            
+            setTrackingNumber('');
+            setSelectedOrder(null);
+            // Refresh orders or show success message
+        } catch (err) {
+            setError('Failed to update tracking number');
+        }
+    };
+
+
     if (loading) return (
         <div>
             <Navigation />
@@ -191,9 +268,74 @@ const MyListings = () => {
     return (
         <div>
             <Navigation />
+            {/* User Profile Section */}
+            <div className="user-profile-section">
+                    <div className="profile-header">
+                        <div className="profile-image">
+                            {userProfile?.profile_picture ? (
+                                <img src={userProfile.profile_picture} alt="Profile" />
+                            ) : (
+                                <div className="default-profile-image">
+                                    {userProfile?.username?.[0]?.toUpperCase()}
+                                </div>
+                            )}
+                        </div>
+                        <div className="profile-info">
+                            <h2>{userProfile?.username}</h2>
+                            <p>{userProfile?.email}</p>
+                        </div>
+                    </div>
+                    <div className="sales-stats">
+                        <div className="stats-grid">
+                            <div className="stat-item">
+                                <span className="stat-label">Total Sales: ${orders.reduce((total, order) => total + order.total_price, 0)}</span>
+                            </div>
+                            <div className="stat-item">
+                                <span className="stat-label">Active Listings: {listings.filter(l => l.is_active).length}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div> 
+{/* 
+                Order Tracking Section */}
+                {/* <div className="order-tracking-section">
+                    <h3>Order Tracking</h3>
+                    <div className="tracking-form">
+                        <select 
+                            value={selectedOrder?.id || ''}
+                            onChange={(e) => {
+                                const order = listings.find(l => l.id === parseInt(e.target.value));
+                                setSelectedOrder(order);
+                            }}
+                        >
+                            <option value="">Select an order</option>
+                            {listings.map(listing => (
+                                <option key={listing.id} value={listing.id}>
+                                    {listing.title} - ${listing.price}
+                                </option>
+                            ))}
+                        </select>
+                        <form onSubmit={handleTrackingSubmit}>
+                            <input
+                                type="text"
+                                placeholder="Enter tracking number"
+                                value={trackingNumber}
+                                onChange={(e) => setTrackingNumber(e.target.value)}
+                            />
+                            <button type="submit">Update Tracking</button>
+                        </form>
+                    </div>
+                </div>  */}
+
+            <div className="orders-section">
+                <h2>Order History</h2>
+                <OrderTable />
+            </div>
+            
             <div className="my-listings-container">
+                {/* Existing Listings Section */}
                 <div className="listings-header">
-                    <h1>My Listings</h1>
+                    <h2>My Listings</h2>
                     <button 
                         className="create-listing-button"
                         onClick={() => setShowCreateForm(true)}
@@ -295,34 +437,26 @@ const MyListings = () => {
                         </div>
                     </div>
                 )}
-                
-                <div className="listings-grid">
-                    {listings.length === 0 ? (
-                        <p className="no-listings">You haven't created any listings yet.</p>
+
+                <div className="featured-listings">
+                    {loading ? (
+                        <p className="loading">Loading listings...</p>
+                    ) : error ? (
+                        <p className="error">{error}</p>
+                    ) : listings.length > 0 ? (
+                        <MyListingItemSlider 
+                            items={listings.map(listing => ({
+                                id: listing.id,
+                                content: listing.title,
+                                price: listing.price,
+                                image: listing.image,
+                                category: listing.category,
+                                condition: listing.condition,
+                                seller: listing.owner?.username || 'Unknown'
+                            }))}
+                        />
                     ) : (
-                        listings.map(listing => (
-                            <div key={listing.id} className="listing-card">
-                                <img
-                                    src={listing.image || 'https://via.placeholder.com/150x150?text=No+Image'}
-                                    alt={listing.title}
-                                    className="listing-image"
-                                />
-                                <div className="listing-details">
-                                    <h3>{listing.title}</h3>
-                                    <p className="price">${listing.price}</p>
-                                    {listing.category && <p className="category">Category: {listing.category}</p>}
-                                    {listing.condition && <p className="condition">Condition: {listing.condition}</p>}
-                                    <div className="listing-actions">
-                                        <button onClick={() => navigate(`/listings/${listing.id}`)}>
-                                            View
-                                        </button>
-                                        <button onClick={() => handleDelete(listing.id)}>
-                                            Delete
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        ))
+                        <p className="no-listings">No listings available.</p>
                     )}
                 </div>
             </div>

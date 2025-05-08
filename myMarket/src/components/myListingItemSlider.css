@@ -1,0 +1,157 @@
+.item-container {
+    width: 100%;
+    margin: 0 auto;
+    padding: 10px 20px;
+    border: 2px solid #ffffff;
+    position: relative;
+    box-sizing: border-box;
+    overflow: hidden; 
+    cursor: grab; 
+    height: 320px;
+    background-color: white;
+  }
+  
+  .item-track {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+    height: 100%;
+    box-sizing: border-box;
+    transition: transform 0.3s ease-in-out;
+    white-space: nowrap;
+    padding: 0 10px;
+    width: max-content;
+    background-color: white;
+  }
+  
+  .item {
+    flex: 0 0 auto;
+    width: 230px;
+    height: 300px;
+    margin: 0;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    background-color: white;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    text-align: center;
+    padding: 10px;
+    transition: transform 0.2s ease-in-out;
+  }
+  
+  .item:hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 10px rgba(0, 0, 0, 0.15);
+  }
+  
+  .item-image {
+    width: 100%;
+    height: 150px;
+    overflow: hidden;
+    margin-bottom: 10px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .item-image img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain; 
+  }
+  
+  .item h2 {
+    font-size: 16px;
+    font-weight: bold;
+    color: #333;
+    margin: 0 0 10px 0;
+    padding: 0;
+    line-height: 1.4;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  
+  .item-price {
+    font-size: 18px;
+    font-weight: bold;
+    color: #2c5282;
+    margin: 5px 0;
+  }
+  
+  .item-category, .item-condition, .item-seller {
+    font-size: 14px;
+    color: #666;
+    margin: 5px 0;
+  }
+  
+  .item-seller {
+    font-style: italic;
+    color: #555;
+  }
+  
+  .item-buttons {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    margin-top: auto;
+    gap: 8px;
+  }
+  
+  .view-button, .delete-button {
+    width: 100%;
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.2s;
+  }
+  
+  .view-button {
+    background-color: #4299e1;
+    color: white;
+  }
+  
+  .view-button:hover {
+    background-color: #2b6cb0;
+  }
+  
+  .delete-button {
+    background-color: #e53e3e;
+    color: white;
+  }
+  
+  .delete-button:hover {
+    background-color: #c53030;
+  }
+  
+  .cart-message, .error-message {
+    position: absolute;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 8px 16px;
+    border-radius: 4px;
+    font-size: 14px;
+    z-index: 1000;
+  }
+  
+  .cart-message {
+    background-color: #48bb78;
+    color: white;
+  }
+  
+  .error-message {
+    background-color: #e53e3e;
+    color: white;
+  }
+  

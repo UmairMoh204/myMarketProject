@@ -3,6 +3,10 @@ from pathlib import Path
 from datetime import timedelta
 import dj_database_url
 
+# Load environment variables from .env file
+from dotenv import load_dotenv
+load_dotenv()
+
 # Try to load .env file, but don't fail if it doesn't exist
 try:
     from dotenv import load_dotenv
@@ -143,9 +147,9 @@ EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'umohamme@macalester.edu'
-EMAIL_HOST_PASSWORD = 'upakgkvwumegnatj'  
-DEFAULT_FROM_EMAIL = 'your_email@gmail.com'
+EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')
+DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL')
 
 # Allow all origins in development
 if DEBUG:
@@ -207,6 +211,8 @@ else:
     MIDDLEWARE = [m for m in MIDDLEWARE if m != 'django.middleware.security.SecurityMiddleware']
 
 # Stripe settings
-STRIPE_PUBLISHABLE_KEY = 'your_publishable_key_here'
-STRIPE_SECRET_KEY = 'your_secret_key_here'
-STRIPE_WEBHOOK_SECRET = 'whsec_your_webhook_signing_secret'  # You'll need to get this from your Stripe dashboard
+STRIPE_PUBLISHABLE_KEY = os.environ.get('STRIPE_PUBLISHABLE_KEY')
+STRIPE_SECRET_KEY = os.environ.get('STRIPE_SECRET_KEY')
+STRIPE_WEBHOOK_SECRET = os.environ.get('STRIPE_WEBHOOK_SECRET')
+
+

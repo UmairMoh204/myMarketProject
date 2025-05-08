@@ -1,18 +1,20 @@
 import React, { useRef, useState, useEffect } from 'react';
-import './ItemSlider.css';
-import AddToCartButton from './AddToCartButton';
+import './myListingItemSlider.css';
+import { useNavigate } from 'react-router-dom';
+import api from '../utils/auth';
 
-function ItemSlider({ items, onBuyClick }) {
+function MyListingItemSlider({ items }) {
   const containerRef = useRef(null);
   const [isDragging, setIsDragging] = useState(false);
   const [startX, setStartX] = useState(0);
   const [scrollLeft, setScrollLeft] = useState(0);
   const [successMessage, setSuccessMessage] = useState('');
   const [error, setError] = useState('');
+  const navigate = useNavigate();
   const BACKEND_URL = 'http://localhost:8000';
 
   useEffect(() => {
-    console.log('ItemSlider received items:', items);
+    console.log('MyListingItemSlider received items:', items);
   }, [items]);
 
   const handleMouseDown = (e) => {
@@ -40,8 +42,24 @@ function ItemSlider({ items, onBuyClick }) {
     containerRef.current.scrollLeft = scrollLeft - walk;
   };
 
+  const handleView = (itemId) => {
+    navigate(`/listing/${itemId}`);
+  };
+
+  const handleDelete = async (itemId) => {
+    try {
+      await api.delete(`/listings/${itemId}/`);
+      setSuccessMessage('Listing deleted successfully');
+      setTimeout(() => setSuccessMessage(''), 2000);
+      // You might want to trigger a refresh of the listings here
+    } catch (err) {
+      setError('Failed to delete listing');
+      setTimeout(() => setError(''), 2000);
+    }
+  };
+
   if (!items || items.length === 0) {
-    console.log('No items to display in ItemSlider');
+    console.log('No items to display in MyListingItemSlider');
     return <div className="item-container">No items available</div>;
   }
 
@@ -70,7 +88,7 @@ function ItemSlider({ items, onBuyClick }) {
           {error}
         </div>
       )}
-      <div className="item-track rotating-track">
+      <div className="item-track">
         {items.map((item) => {
           const imageUrl = getImageUrl(item.image);
           return (
@@ -83,13 +101,10 @@ function ItemSlider({ items, onBuyClick }) {
               </div>
               <h2>{item.content}</h2>
               {item.price && <p className="item-price">${item.price}</p>}
-              {/* {item.category && <p className="item-category">Category: {item.category}</p>}
-              {item.condition && <p className="item-condition">Condition: {item.condition}</p>}
-              {item.seller && <p className="item-seller">Seller: {item.seller}</p>} */}
               <div className="item-buttons">
-                <AddToCartButton 
-                  listingId={item.id}
-                />
+                <button className="delete-button" onClick={() => handleDelete(item.id)}>
+                  Delete
+                </button>
               </div>
             </div>
           );
@@ -99,4 +114,4 @@ function ItemSlider({ items, onBuyClick }) {
   );
 }
 
-export default ItemSlider;
+export default MyListingItemSlider;

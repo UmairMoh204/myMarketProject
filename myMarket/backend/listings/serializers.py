@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Listing, Cart, CartItem, UserProfile, Conversation, Message
+from .models import Listing, Cart, CartItem, UserProfile, Conversation, Message, Order, OrderItem
 from django.contrib.auth.models import User
 from decimal import Decimal
 
@@ -111,4 +111,23 @@ class ConversationSerializer(serializers.ModelSerializer):
         request = self.context.get('request')
         if request and request.user.is_authenticated:
             return obj.messages.filter(is_read=False).exclude(sender=request.user).count()
-        return 0 
+        return 0
+
+class OrderItemSerializer(serializers.ModelSerializer):
+    listing_title = serializers.CharField(source='listing.title', read_only=True)
+    listing_image = serializers.ImageField(source='listing.image', read_only=True)
+    seller_username = serializers.CharField(source='listing.owner.username', read_only=True)
+    seller_email = serializers.EmailField(source='listing.owner.email', read_only=True)
+
+    class Meta:
+        model = OrderItem
+        fields = ['id', 'listing', 'listing_title', 'listing_image', 'quantity', 'price', 'created_at', 'seller_username', 'seller_email']
+
+class OrderSerializer(serializers.ModelSerializer):
+    items = OrderItemSerializer(many=True, read_only=True)
+    user_email = serializers.EmailField(source='user.email', read_only=True)
+    user_username = serializers.CharField(source='user.username', read_only=True)
+
+    class Meta:
+        model = Order
+        fields = ['id', 'user', 'user_username', 'user_email', 'total_price', 'status', 'created_at', 'updated_at', 'items'] 

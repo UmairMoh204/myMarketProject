@@ -4,10 +4,10 @@ from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from django_filters.rest_framework import DjangoFilterBackend
-from .models import Listing, Cart, CartItem, UserProfile, Conversation, Message
+from .models import Listing, Cart, CartItem, UserProfile, Conversation, Message, Order, OrderItem
 from .serializers import (
     ListingSerializer, UserSerializer, CartSerializer, CartItemSerializer,
-    UserProfileSerializer, ConversationSerializer, MessageSerializer
+    UserProfileSerializer, ConversationSerializer, MessageSerializer, OrderSerializer
 )
 from django.contrib.auth.models import User
 from django.urls import reverse
@@ -24,11 +24,10 @@ import stripe
 from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
 from django.http import HttpResponse
+from rest_framework.routers import DefaultRouter
 
-# Initialize Stripe with your secret key
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
-# Create your views here.
 
 @api_view(['POST'])
 @permission_classes([permissions.AllowAny])
@@ -36,23 +35,19 @@ def register_user(request):
     if not request.data:
         return Response({'error': 'No data provided'}, status=status.HTTP_400_BAD_REQUEST)
     
-    # Validate password strength
     password = request.data.get('password', '')
     if len(password) < 8:
         return Response({'error': 'Password must be at least 8 characters long'}, status=status.HTTP_400_BAD_REQUEST)
     
-    # Check if username already exists
     if User.objects.filter(username=request.data.get('username')).exists():
         return Response({'error': 'Username already exists'}, status=status.HTTP_400_BAD_REQUEST)
     
-    # Check if email already exists
     if User.objects.filter(email=request.data.get('email')).exists():
         return Response({'error': 'Email already exists'}, status=status.HTTP_400_BAD_REQUEST)
         
     serializer = UserSerializer(data=request.data)
     if serializer.is_valid():
         try:
-            # Create user with is_active=False immediately (no email verification needed)
             user = User.objects.create_user(
                 username=serializer.validated_data['username'],
                 email=serializer.validated_data.get('email', ''),
@@ -257,7 +252,6 @@ class CartViewSet(BaseModelViewSet):
                 print(f"Listing not found or not active: {listing_id}")
                 return Response({'error': 'Listing not found or not active'}, status=status.HTTP_404_NOT_FOUND)
             
-            # Check if the item is already in the cart
             cart_item, created = CartItem.objects.get_or_create(
                 cart=cart,
                 listing=listing,
@@ -271,7 +265,6 @@ class CartViewSet(BaseModelViewSet):
             else:
                 print(f"Created new cart item with quantity: {quantity}")
             
-            # Refresh the cart to get updated items
             cart.refresh_from_db()
             serializer = self.get_serializer(cart)
             print(f"Cart after update: {serializer.data}")
@@ -429,15 +422,26 @@ def verify_email(request, uidb64, token):
 def create_checkout_session(request):
     try:
         print("Creating checkout session...")
+        print("Request data:", request.data)
+        print("User:", request.user)
+        
         cart_id = request.data.get('cart_id')
         if not cart_id:
+            print("No cart_id provided in request")
             return Response({'error': 'Cart ID is required'}, status=status.HTTP_400_BAD_REQUEST)
 
         print(f"Getting cart with ID: {cart_id}")
-        # Get cart items
-        cart = Cart.objects.get(id=cart_id, user=request.user)
+        try:
+            cart = Cart.objects.get(id=cart_id, user=request.user)
+            print(f"Found cart: {cart.id} with {cart.items.count()} items")
+        except Cart.DoesNotExist:
+            print(f"Cart not found with ID: {cart_id} for user: {request.user.id}")
+            return Response({'error': 'Cart not found'}, status=status.HTTP_404_NOT_FOUND)
         
-        # Create line items for Stripe
+        if not cart.items.exists():
+            print("Cart is empty")
+            return Response({'error': 'Cart is empty'}, status=status.HTTP_400_BAD_REQUEST)
+        
         line_items = []
         for item in cart.items.all():
             print(f"Processing item: {item.listing.title}")
@@ -445,11 +449,12 @@ def create_checkout_session(request):
             if item.listing.image:
                 try:
                     image_url = request.build_absolute_uri(item.listing.image.url)
+                    print(f"Image URL: {image_url}")
                 except Exception as e:
                     print(f"Error getting image URL: {str(e)}")
                     pass
 
-            price = int(float(item.listing.price) * 100)  # Convert to cents
+            price = int(float(item.listing.price) * 100)  
             print(f"Item price in cents: {price}")
             
             line_items.append({
@@ -464,28 +469,25 @@ def create_checkout_session(request):
                 'quantity': item.quantity,
             })
 
-        print("Creating Stripe checkout session...")
-        # Create Stripe checkout session
-        session = stripe.checkout.Session.create(
-            payment_method_types=['card'],
-            line_items=line_items,
-            mode='payment',
-            success_url='http://localhost:3000/checkout/success?session_id={CHECKOUT_SESSION_ID}',
-            cancel_url='http://localhost:3000/cart',
-            customer_email=request.user.email,
-            metadata={
-                'cart_id': cart.id  # Add cart ID to metadata
-            }
-        )
-
-        print(f"Session created successfully with ID: {session.id}")
-        return Response({'sessionId': session.id})
-    except Cart.DoesNotExist:
-        print("Cart not found error")
-        return Response({'error': 'Cart not found'}, status=status.HTTP_404_NOT_FOUND)
-    except stripe.error.StripeError as e:
-        print(f"Stripe error: {str(e)}")
-        return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        print("Creating Stripe checkout session with line items:", line_items)
+        try:
+            session = stripe.checkout.Session.create(
+                payment_method_types=['card'],
+                line_items=line_items,
+                mode='payment',
+                success_url='http://localhost:3000/success?session_id={CHECKOUT_SESSION_ID}',
+                cancel_url='http://localhost:3000/cart',
+                customer_email=request.user.email,
+                metadata={
+                    'cart_id': cart.id  
+                }
+            )
+            print(f"Session created successfully with ID: {session.id}")
+            return Response({'sessionId': session.id})
+        except stripe.error.StripeError as e:
+            print(f"Stripe error: {str(e)}")
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+            
     except Exception as e:
         print(f"Error creating checkout session: {str(e)}")
         import traceback
@@ -514,13 +516,53 @@ def stripe_webhook(request):
         if cart_id:
             try:
                 cart = Cart.objects.get(id=cart_id)
-                # Mark listings as inactive
+                
+                order = Order.objects.create(
+                    user=cart.user,
+                    total_price=cart.total_price,
+                    stripe_session_id=session.id,
+                    status='pending'
+                )
+                
                 for item in cart.items.all():
+                    OrderItem.objects.create(
+                        order=order,
+                        listing=item.listing,
+                        quantity=item.quantity,
+                        price=item.listing.price
+                    )
+                    
                     item.listing.is_active = False
                     item.listing.save()
-                # Clear the cart
+                
                 cart.items.clear()
+                
             except Cart.DoesNotExist:
                 pass
 
     return HttpResponse(status=200)
+
+class OrderViewSet(viewsets.ModelViewSet):
+    serializer_class = OrderSerializer
+    permission_classes = [IsAuthenticated]
+    
+    def get_queryset(self):
+        buyer_orders = Order.objects.filter(user=self.request.user)
+        
+        seller_orders = Order.objects.filter(
+            items__listing__owner=self.request.user
+        ).distinct()
+        
+        # Combine both querysets
+        return (buyer_orders | seller_orders).order_by('-created_at')
+    
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+router = DefaultRouter()
+router.register(r'listings', ListingViewSet, basename='listing')
+router.register(r'carts', CartViewSet, basename='cart')
+router.register(r'profiles', UserProfileViewSet, basename='profile')
+router.register(r'conversations', ConversationViewSet, basename='conversation')
+router.register(r'messages', MessageViewSet, basename='message')
+router.register(r'orders', OrderViewSet, basename='order')
