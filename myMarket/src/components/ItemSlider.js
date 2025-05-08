@@ -11,6 +11,14 @@ function ItemSlider({ items, onBuyClick }) {
   const [error, setError] = useState('');
   const BACKEND_URL = 'http://localhost:8000';
 
+  const recentItems = items
+    ? [...items]
+        .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+        .slice(0, 10)
+    : [];
+
+  const duplicatedItems = [...recentItems, ...recentItems, ...recentItems, ...recentItems, ...recentItems];
+
   useEffect(() => {
     console.log('ItemSlider received items:', items);
   }, [items]);
@@ -19,24 +27,24 @@ function ItemSlider({ items, onBuyClick }) {
     setIsDragging(true);
     setStartX(e.pageX - containerRef.current.offsetLeft);
     setScrollLeft(containerRef.current.scrollLeft);
-    containerRef.current.style.cursor = 'grabbing'; 
+    containerRef.current.style.cursor = 'grabbing';
   };
 
   const handleMouseLeave = () => {
     setIsDragging(false);
-    containerRef.current.style.cursor = 'grab'; 
+    containerRef.current.style.cursor = 'grab';
   };
 
   const handleMouseUp = () => {
     setIsDragging(false);
-    containerRef.current.style.cursor = 'grab'; 
+    containerRef.current.style.cursor = 'grab';
   };
 
   const handleMouseMove = (e) => {
     if (!isDragging) return;
     e.preventDefault();
     const x = e.pageX - containerRef.current.offsetLeft;
-    const walk = (x - startX) * 1.5; 
+    const walk = (x - startX) * 1.5;
     containerRef.current.scrollLeft = scrollLeft - walk;
   };
 
@@ -70,11 +78,11 @@ function ItemSlider({ items, onBuyClick }) {
           {error}
         </div>
       )}
-      <div className="item-track rotating-track">
-        {items.map((item) => {
+      <div className="item-track">
+        {duplicatedItems.map((item, index) => {
           const imageUrl = getImageUrl(item.image);
           return (
-            <div key={item.id} className="item">
+            <div key={`${item.id}-${index}`} className="item">
               <div className="item-image">
                 <img src={imageUrl} alt={item.content} onError={(e) => {
                   e.target.onerror = null;

@@ -288,7 +288,7 @@ const MyListings = () => {
                     <div className="sales-stats">
                         <div className="stats-grid">
                             <div className="stat-item">
-                                <span className="stat-label">Total Sales: ${orders.reduce((total, order) => total + order.total_price, 0)}</span>
+                                <span className="stat-label">Total Sales: {orders.reduce((total, order) => total + order.total_price, 0)}</span>
                             </div>
                             <div className="stat-item">
                                 <span className="stat-label">Active Listings: {listings.filter(l => l.is_active).length}</span>

@@ -84,7 +84,7 @@ function Home() {
     },
     { 
       id: 3, 
-      image: 'https://images.unsplash.com/photo-1607082350899-7e105aa886ae?q=80&w=1000&auto=format&fit=crop',
+      image: 'https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?q=80&w=1000&auto=format&fit=crop',
     },
     { 
       id: 4, 
@@ -92,7 +92,7 @@ function Home() {
     },
     { 
       id: 5, 
-      image: 'https://images.unsplash.com/photo-1607082350899-7e105aa886ae?q=80&w=1000&auto=format&fit=crop',
+      image: 'https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?q=80&w=1000&auto=format&fit=crop',
     }
   ];
 
@@ -131,8 +131,8 @@ function Home() {
                   <Slider slides={slides} />
                 </div>
                 
-                <div>
-                  <h2 style={{ margin: '50px' }}>What's New (Backend Listings)</h2>
+                <div className="item-slider-container">
+                  <h2>What's New (Backend Listings)</h2>
                   {loading ? (
                     <p style={{ textAlign: 'center', margin: '20px' }}>Loading listings...</p>
                   ) : error ? (

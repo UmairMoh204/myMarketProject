@@ -26,7 +26,6 @@ function AddToCartButton({ listingId }) {
       setLoading(true);
       setError(null);
 
-      // Get the cart first
       console.log('Getting cart...');
       const cartResponse = await api.get('carts/');
       console.log('Cart response:', cartResponse.data);
@@ -36,7 +35,6 @@ function AddToCartButton({ listingId }) {
         throw new Error('Invalid cart response');
       }
 
-      // Add item to cart
       console.log('Adding item to cart:', listingId);
       const addResponse = await api.post(`carts/${cartResponse.data.id}/add_item/`, {
         listing_id: listingId,
@@ -49,16 +47,15 @@ function AddToCartButton({ listingId }) {
         throw new Error('Invalid response from server');
       }
 
-      // Get updated cart
       console.log('Getting updated cart...');
       const updatedCart = await api.get('carts/');
       console.log('Updated cart:', updatedCart.data);
 
-      // Update cart count in navigation
       if (window.updateCartCount) {
-        const itemCount = updatedCart.data.items ? updatedCart.data.items.length : 0;
-        console.log('Updating cart count:', itemCount);
-        window.updateCartCount(itemCount);
+        const totalQuantity = updatedCart.data.items ? 
+          updatedCart.data.items.reduce((total, item) => total + item.quantity, 0) : 0;
+        console.log('Updating cart count:', totalQuantity);
+        window.updateCartCount(totalQuantity);
       }
 
       setSuccess(true);

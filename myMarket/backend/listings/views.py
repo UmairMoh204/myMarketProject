@@ -529,7 +529,7 @@ def stripe_webhook(request):
                         order=order,
                         listing=item.listing,
                         quantity=item.quantity,
-                        price=item.listing.price
+                        price_at_time=item.listing.price
                     )
                     
                     item.listing.is_active = False

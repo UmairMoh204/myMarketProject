@@ -14,7 +14,8 @@ function Navigation() {
       try {
         const response = await api.get('/carts/');
         if (response.data && response.data.length > 0 && response.data[0].items) {
-          setCartCount(response.data[0].items.length);
+          const totalQuantity = response.data[0].items.reduce((total, item) => total + item.quantity, 0);
+          setCartCount(totalQuantity);
         }
       } catch (err) {
         console.error('Error fetching cart count:', err);

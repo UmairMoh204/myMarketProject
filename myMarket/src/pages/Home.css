@@ -65,6 +65,19 @@ html, body {
     margin-bottom: 40px; 
 }
 
+.item-slider-container {
+    width: 90%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 40px;
+}
+
+.item-slider-container h2 {
+    margin-bottom: 30px;
+    font-size: 24px;
+    color: #333;
+}
+
 /* .ItemSliderStyling {
     width: 90%;
     height: 500px;
