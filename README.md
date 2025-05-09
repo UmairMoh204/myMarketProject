@@ -16,18 +16,13 @@ A full-featured marketplace application backend built with Django and Django RES
 
 ## Tech Stack
 
-### Backend
 - Django
 - Django REST Framework
-- SQLite
+- SQLlite
 - JWT Authentication
 - Stripe API
 - CORS support
-
-### Frontend
-- React
-- Material-UI
-- Axios
+- Swagger/OpenAPI documentation
 
 ## Prerequisites
 
