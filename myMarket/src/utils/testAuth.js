@@ -1,17 +1,14 @@
 import axios from 'axios';
 
-// Test the Django authentication endpoints
 const testAuth = async () => {
   try {
-    // Test the token endpoint
     console.log('Testing token endpoint...');
     const tokenResponse = await axios.post('http://localhost:8000/api/token/', {
-      username: 'testuser', // Replace with a valid username
-      password: 'testpassword' // Replace with a valid password
+      username: 'testuser', 
+      password: 'testpassword' 
     });
     console.log('Token response:', tokenResponse.data);
     
-    // Test the token refresh endpoint
     if (tokenResponse.data && tokenResponse.data.refresh) {
       console.log('Testing token refresh endpoint...');
       const refreshResponse = await axios.post('http://localhost:8000/api/token/refresh/', {
@@ -20,7 +17,6 @@ const testAuth = async () => {
       console.log('Refresh response:', refreshResponse.data);
     }
     
-    // Test the register endpoint
     console.log('Testing register endpoint...');
     const registerResponse = await axios.post('http://localhost:8000/api/register/', {
       username: 'newuser' + Math.floor(Math.random() * 1000),

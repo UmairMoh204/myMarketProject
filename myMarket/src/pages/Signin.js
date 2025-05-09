@@ -22,7 +22,6 @@ function Signin() {
   const { uidb64, token } = useParams();
 
   useEffect(() => {
-    // Check if we're on a verification or reset password page
     if (window.location.pathname.includes('/verify-email/')) {
     } else if (window.location.pathname.includes('/reset-password/')) {
       setIsResetPassword(true);
@@ -41,7 +40,6 @@ function Signin() {
     setError('');
     setSuccess('');
 
-    // Validate form
     if (isLogin) {
       if (!formData.username || !formData.password) {
         setError('Username and password are required');
@@ -66,7 +64,6 @@ function Signin() {
         return;
       }
     } else {
-      // Registration
       if (!formData.username || !formData.email || !formData.password || !formData.confirmPassword) {
         setError('All fields are required');
         return;
@@ -83,13 +80,11 @@ function Signin() {
 
     try {
       if (isLogin) {
-        // Login
         const response = await axios.post('http://localhost:8000/api/token/', {
           username: formData.username,
           password: formData.password
         });
 
-        // Store tokens in localStorage
         if (response.data && response.data.access) {
           localStorage.setItem('token', response.data.access);
           localStorage.setItem('refreshToken', response.data.refresh);

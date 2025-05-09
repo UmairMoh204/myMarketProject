@@ -27,7 +27,7 @@ export default function OrderTable() {
       }
 
       const response = await api.get('/orders/');
-      console.log('Orders response:', response.data); // Debug log
+      console.log('Orders response:', response.data); 
       if (response.data) {
         setOrders(response.data);
       }
@@ -46,7 +46,6 @@ export default function OrderTable() {
 
   useEffect(() => {
     fetchOrders();
-    // Set up polling to refresh orders every 30 seconds
     const intervalId = setInterval(fetchOrders, 30000);
     return () => clearInterval(intervalId);
   }, [navigate]);

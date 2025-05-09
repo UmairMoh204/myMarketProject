@@ -30,7 +30,6 @@ function Success() {
         return;
       }
 
-      // Here you could verify the session with your backend if needed
       console.log('Session verified, showing success message');
       setIsLoading(false);
     };

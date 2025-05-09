@@ -24,6 +24,7 @@ export default function ItemCard({ item }) {
         </div>
         <h2 className="item-title">{item.title}</h2> 
         {item.price && <p className="item-price">${item.price}</p>}
+        {item.condition && <p className="item-condition">Condition: {item.condition}</p>}
         <div className="item-buttons">
             <AddToCartButton listingId={item.id} />
         </div>

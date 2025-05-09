@@ -91,9 +91,7 @@ function ItemSlider({ items, onBuyClick }) {
               </div>
               <h2>{item.content}</h2>
               {item.price && <p className="item-price">${item.price}</p>}
-              {/* {item.category && <p className="item-category">Category: {item.category}</p>}
               {item.condition && <p className="item-condition">Condition: {item.condition}</p>}
-              {item.seller && <p className="item-seller">Seller: {item.seller}</p>} */}
               <div className="item-buttons">
                 <AddToCartButton 
                   listingId={item.id}
