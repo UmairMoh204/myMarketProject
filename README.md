@@ -138,7 +138,6 @@ npm start
 - `/api/carts/<id>/add_item/` - Add item to cart
 - `/api/carts/<id>/remove_item/` - Remove item from cart
 - `/api/carts/<id>/update_quantity/` - Update cart item quantity
-- `/api/carts/<id>/clear/` - Clear cart
 - `/api/orders/` - Order management
 
 ### Payments
