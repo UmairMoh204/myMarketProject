@@ -60,6 +60,11 @@ npm start
 
 The API documentation is available at `/api/docs/` when running the server.
 
+## Account Username and Password
+
+Username: admin
+Password: adminadmin123
+
 ## Available Endpoints
 
 - `/api/auth/register/` - User registration
